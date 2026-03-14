@@ -5,9 +5,10 @@ if (window.map) {
     window.map.remove();
 }
 
-var map = L.map("map",{
-  renderer: L.canvas()
-}).setView([52.5,-106],6);
+    
+var map = L.map("map").setView([52.5,-106],6);
+
+    
 window.map = map;
 
 L.tileLayer(
@@ -26,22 +27,22 @@ var api =
 // AQHI colors
 function aqhiColor(v){
 
-  if(v == null) return "#cccccc";
+  if(v == null) return "#D3D3D3";
 
-  if(v <= 1) return "#009966";
-  if(v <= 2) return "#33cc33";
-  if(v <= 3) return "#99cc33";
-  if(v <= 4) return "#ffde33";
-  if(v <= 5) return "#ffcc33";
-  if(v <= 6) return "#ff9933";
-  if(v <= 7) return "#ff6600";
-  if(v <= 8) return "#ff3300";
-  if(v <= 9) return "#cc0033";
-  if(v <= 10) return "#990033";
-
-  return "#cc0033";
+  if (v < 1)  return "#D3D3D3";
+  if (v === 1) return "#01cbff";
+  if (v === 2) return "#0099cb";
+  if (v === 3) return "#016797";
+  if (v === 4) return "#fffe03";
+  if (v === 5) return "#ffcb00";
+  if (v === 6) return "#ff9835";
+  if (v === 7) return "#fd6866";
+  if (v === 8) return "#fe0002";
+  if (v === 9) return "#cc0001";
+  if (v === 10) return "#9a0100";
+  return "#640100";
 }
-
+    
 
 function round1(v){
   if (v == null) return "N/A";
