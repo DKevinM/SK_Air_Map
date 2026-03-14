@@ -36,11 +36,11 @@ def calc_aqhi(pm25, no2, o3):
         if pm25 <= -999 or no2 <= -999 or o3 <= -999:
             return None
 
-        aqhi = (10/10.4) * (
-            math.exp(0.000537 * no2) +
-            math.exp(0.000871 * o3) +
+        aqhi = (10/10.4) * (100 * (
+            math.exp(0.000871 * no2) +
+            math.exp(0.000537 * o3) +
             math.exp(0.000487 * pm25) - 3
-        )
+        ))
 
         aqhi = round(aqhi)
 
