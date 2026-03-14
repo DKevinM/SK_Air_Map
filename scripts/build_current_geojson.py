@@ -2,26 +2,33 @@ import requests
 import json
 import math
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query"
-
-# pull last 3 hours
-three_hours_ago = int((datetime.utcnow() - timedelta(hours=3)).timestamp() * 1000)
-
-PARAMS = {
-    "where": f"DATETIME >= {three_hours_ago}",
-    "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
-    "f": "geojson"
-}
-
 OUTPUT = Path("data/sk_aqhi_current.geojson")
+
+# 3 hour cutoff
+cutoff = datetime.now(timezone.utc) - timedelta(hours=3)
+cutoff_ms = cutoff.timestamp() * 1000
+
+# request data
+r = requests.get(API, params={
+    "where": "1=1",
+    "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
+    "f": "geojson",
+    "resultRecordCount": 1000
+})
+
+data = r.json()
+
+if "features" not in data:
+    print("ArcGIS error:")
+    print(data)
+    raise SystemExit
 
 
 def calc_aqhi(pm25, no2, o3):
-
     try:
-
         pm25 = float(pm25)
         no2 = float(no2)
         o3 = float(o3)
@@ -48,15 +55,17 @@ def calc_aqhi(pm25, no2, o3):
         return None
 
 
-r = requests.get(API, params=PARAMS)
-data = r.json()
-
+# group records by station
 stations = {}
 
-# collect readings per station
 for f in data["features"]:
 
     p = f["properties"]
+
+    # keep only last 3 hours
+    if p["DATETIME"] < cutoff_ms:
+        continue
+
     station = p["COMMUNITY"]
 
     stations.setdefault(station, {
@@ -82,9 +91,9 @@ for station, s in stations.items():
     if not pm25 or not no2 or not o3:
         continue
 
-    pm25_avg = sum(pm25)/len(pm25)
-    no2_avg = sum(no2)/len(no2)
-    o3_avg = sum(o3)/len(o3)
+    pm25_avg = sum(pm25) / len(pm25)
+    no2_avg = sum(no2) / len(no2)
+    o3_avg = sum(o3) / len(o3)
 
     aqhi = calc_aqhi(pm25_avg, no2_avg, o3_avg)
 
@@ -93,9 +102,9 @@ for station, s in stations.items():
         "geometry": s["geometry"],
         "properties": {
             "station": station,
-            "pm25_3hr": round(pm25_avg,1),
-            "no2_3hr": round(no2_avg,1),
-            "o3_3hr": round(o3_avg,1),
+            "pm25_3hr": round(pm25_avg, 1),
+            "no2_3hr": round(no2_avg, 1),
+            "o3_3hr": round(o3_avg, 1),
             "aqhi": aqhi
         }
     })
