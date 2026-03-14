@@ -7,11 +7,12 @@ from datetime import datetime, timedelta, timezone
 API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query"
 OUTPUT = Path("data/sk_aqhi_current.geojson")
 
-# 3 hour cutoff
+# determine 3-hour cutoff
 cutoff = datetime.now(timezone.utc) - timedelta(hours=3)
 cutoff_ms = cutoff.timestamp() * 1000
 
-# request data
+
+# pull station data
 r = requests.get(API, params={
     "where": "1=1",
     "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
@@ -28,7 +29,9 @@ if "features" not in data:
 
 
 def calc_aqhi(pm25, no2, o3):
+
     try:
+
         pm25 = float(pm25)
         no2 = float(no2)
         o3 = float(o3)
@@ -36,11 +39,11 @@ def calc_aqhi(pm25, no2, o3):
         if pm25 <= -999 or no2 <= -999 or o3 <= -999:
             return None
 
-        aqhi = (10/10.4) * (100 * (
-            math.exp(0.000871 * no2) +
-            math.exp(0.000537 * o3) +
+        aqhi = (10/10.4) * (
+            math.exp(0.000537 * no2) +
+            math.exp(0.000871 * o3) +
             math.exp(0.000487 * pm25) - 3
-        ))
+        )
 
         aqhi = round(aqhi)
 
@@ -55,14 +58,13 @@ def calc_aqhi(pm25, no2, o3):
         return None
 
 
-# group records by station
 stations = {}
 
+# collect station data within last 3 hours
 for f in data["features"]:
 
     p = f["properties"]
 
-    # keep only last 3 hours
     if p["DATETIME"] < cutoff_ms:
         continue
 
@@ -72,12 +74,14 @@ for f in data["features"]:
         "geometry": f["geometry"],
         "pm25": [],
         "no2": [],
-        "o3": []
+        "o3": [],
+        "times": []
     })
 
     stations[station]["pm25"].append(p.get("PM2_5"))
     stations[station]["no2"].append(p.get("NO2"))
     stations[station]["o3"].append(p.get("O3"))
+    stations[station]["times"].append(p.get("DATETIME"))
 
 
 features = []
@@ -97,15 +101,19 @@ for station, s in stations.items():
 
     aqhi = calc_aqhi(pm25_avg, no2_avg, o3_avg)
 
+    latest_time = max(s["times"])
+    latest_dt = datetime.fromtimestamp(latest_time/1000, timezone.utc).isoformat()
+
     features.append({
         "type": "Feature",
         "geometry": s["geometry"],
         "properties": {
             "station": station,
-            "pm25_3hr": round(pm25_avg, 1),
-            "no2_3hr": round(no2_avg, 1),
-            "o3_3hr": round(o3_avg, 1),
-            "aqhi": aqhi
+            "aqhi": aqhi,
+            "pm25_3hr": round(pm25_avg,1),
+            "no2_3hr": round(no2_avg,1),
+            "o3_3hr": round(o3_avg,1),
+            "updated": latest_dt
         }
     })
 
