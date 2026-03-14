@@ -12,10 +12,11 @@
       },
       "properties": {
         "station": "Regina",
+        "aqhi": 1,
         "pm25_3hr": 4.5,
         "no2_3hr": 4.3,
         "o3_3hr": 24.3,
-        "aqhi": 2
+        "updated": "2026-03-14T20:00:00+00:00"
       }
     },
     {
@@ -29,10 +30,11 @@
       },
       "properties": {
         "station": "Saskatoon",
+        "aqhi": 1,
         "pm25_3hr": 6.0,
         "no2_3hr": 5.3,
         "o3_3hr": 29.5,
-        "aqhi": 2
+        "updated": "2026-03-14T20:00:00+00:00"
       }
     },
     {
@@ -46,10 +48,11 @@
       },
       "properties": {
         "station": "Prince Albert",
+        "aqhi": 1,
         "pm25_3hr": 3.2,
         "no2_3hr": 1.5,
         "o3_3hr": 30.0,
-        "aqhi": 2
+        "updated": "2026-03-14T20:00:00+00:00"
       }
     },
     {
@@ -63,10 +66,11 @@
       },
       "properties": {
         "station": "Swift Current",
+        "aqhi": 1,
         "pm25_3hr": 8.0,
         "no2_3hr": 5.4,
         "o3_3hr": 30.1,
-        "aqhi": 2
+        "updated": "2026-03-14T20:00:00+00:00"
       }
     },
     {
@@ -80,10 +84,11 @@
       },
       "properties": {
         "station": "Buffalo Narrows",
+        "aqhi": 1,
         "pm25_3hr": 2.2,
         "no2_3hr": 0.4,
         "o3_3hr": 26.2,
-        "aqhi": 2
+        "updated": "2026-03-14T20:00:00+00:00"
       }
     },
     {
@@ -97,10 +102,11 @@
       },
       "properties": {
         "station": "Estevan",
+        "aqhi": 1,
         "pm25_3hr": 9.5,
         "no2_3hr": 4.1,
         "o3_3hr": 31.2,
-        "aqhi": 2
+        "updated": "2026-03-14T20:00:00+00:00"
       }
     }
   ]
