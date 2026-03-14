@@ -1,5 +1,10 @@
 // create map
-var map = L.map("map").setView([52.5, -106], 6);
+if (window.map) {
+    window.map.remove();
+}
+
+window.map = L.map("map").setView([52.5, -106], 6);
+
 
 // base map
 L.tileLayer(
@@ -49,11 +54,20 @@ fetch(api)
   console.log("Stations returned:", data.features.length);
 
   // remove features with bad geometry
-  var clean = data.features.filter(f =>
-    f.geometry &&
-    f.geometry.coordinates &&
-    f.geometry.coordinates.length === 2
-  );
+  var clean = data.features.filter(f => {
+  
+      if (!f.geometry) return false;
+      if (!f.geometry.coordinates) return false;
+  
+      const lon = f.geometry.coordinates[0];
+      const lat = f.geometry.coordinates[1];
+  
+      if (lon === null || lat === null) return false;
+      if (isNaN(lon) || isNaN(lat)) return false;
+  
+      return true;
+  
+  });
 
   L.geoJSON(clean, {
 
