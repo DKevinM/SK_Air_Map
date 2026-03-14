@@ -55,6 +55,12 @@ function aqhiColor(v){
 }
 
 
+function round1(v){
+  if (v == null) return "N/A";
+  return Number(v).toFixed(1);
+}    
+
+    
 // load stations
 fetch(api)
 .then(r => r.json())
