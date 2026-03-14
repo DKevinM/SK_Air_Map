@@ -70,18 +70,18 @@ ${time}
 
 // FireSmoke forecast plume
 
-const firesmoke = L.tileLayer.wms(
-"https://firesmoke.ca/geoserver/wms",
-{
-layers:"firesmoke:pm25_surface",
-format:"image/png",
-transparent:true,
-opacity:0.5,
-crossOrigin:true
-}
-)
+//const firesmoke = L.tileLayer.wms(
+//"https://firesmoke.ca/geoserver/wms",
+//{
+//layers:"firesmoke:pm25_surface",
+//format:"image/png",
+//transparent:true,
+//opacity:0.5,
+//crossOrigin:true
+//}
+//)
 
-firesmoke.addTo(map)
+//firesmoke.addTo(map)
 
 
 
