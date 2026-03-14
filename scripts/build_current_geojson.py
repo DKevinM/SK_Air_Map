@@ -2,27 +2,47 @@ import requests
 import json
 import math
 from pathlib import Path
+from datetime import datetime, timedelta
 
 API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query"
 
+# pull last 3 hours
+three_hours_ago = int((datetime.utcnow() - timedelta(hours=3)).timestamp() * 1000)
+
 PARAMS = {
-    "where": "1=1",
-    "outFields": "*",
+    "where": f"DATETIME >= {three_hours_ago}",
+    "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
     "f": "geojson"
 }
 
-OUTPUT = Path("data/sk_current.geojson")
+OUTPUT = Path("data/sk_aqhi_current.geojson")
 
 
-def calc_aqhi(pm25,no2,o3):
+def calc_aqhi(pm25, no2, o3):
 
     try:
-        aqhi = (10/10.4)*(
-            math.exp(0.000537*no2) +
-            math.exp(0.000871*o3) +
-            math.exp(0.000487*pm25) - 3
+
+        pm25 = float(pm25)
+        no2 = float(no2)
+        o3 = float(o3)
+
+        if pm25 <= -999 or no2 <= -999 or o3 <= -999:
+            return None
+
+        aqhi = (10/10.4) * (
+            math.exp(0.000537 * no2) +
+            math.exp(0.000871 * o3) +
+            math.exp(0.000487 * pm25) - 3
         )
-        return round(aqhi)
+
+        aqhi = round(aqhi)
+
+        if aqhi < 1:
+            aqhi = 1
+        if aqhi > 10:
+            aqhi = 10
+
+        return aqhi
 
     except:
         return None
@@ -31,39 +51,61 @@ def calc_aqhi(pm25,no2,o3):
 r = requests.get(API, params=PARAMS)
 data = r.json()
 
-features = []
+stations = {}
 
+# collect readings per station
 for f in data["features"]:
 
     p = f["properties"]
+    station = p["COMMUNITY"]
 
-    pm25 = p.get("PM2_5")
-    no2  = p.get("NO2")
-    o3   = p.get("O3")
+    stations.setdefault(station, {
+        "geometry": f["geometry"],
+        "pm25": [],
+        "no2": [],
+        "o3": []
+    })
 
-    aqhi = calc_aqhi(pm25,no2,o3)
+    stations[station]["pm25"].append(p.get("PM2_5"))
+    stations[station]["no2"].append(p.get("NO2"))
+    stations[station]["o3"].append(p.get("O3"))
+
+
+features = []
+
+for station, s in stations.items():
+
+    pm25 = [v for v in s["pm25"] if v and v > -999]
+    no2 = [v for v in s["no2"] if v and v > -999]
+    o3 = [v for v in s["o3"] if v and v > -999]
+
+    if not pm25 or not no2 or not o3:
+        continue
+
+    pm25_avg = sum(pm25)/len(pm25)
+    no2_avg = sum(no2)/len(no2)
+    o3_avg = sum(o3)/len(o3)
+
+    aqhi = calc_aqhi(pm25_avg, no2_avg, o3_avg)
 
     features.append({
-        "type":"Feature",
-        "geometry":f["geometry"],
-        "properties":{
-
-            "station":p.get("COMMUNITY"),
-            "pm25":pm25,
-            "no2":no2,
-            "o3":o3,
-            "temp":p.get("TEMP"),
-            "wind":p.get("WS"),
-            "datetime":p.get("DATETIME"),
-            "aqhi":aqhi
-
+        "type": "Feature",
+        "geometry": s["geometry"],
+        "properties": {
+            "station": station,
+            "pm25_3hr": round(pm25_avg,1),
+            "no2_3hr": round(no2_avg,1),
+            "o3_3hr": round(o3_avg,1),
+            "aqhi": aqhi
         }
     })
 
+
 geojson = {
-    "type":"FeatureCollection",
-    "features":features
+    "type": "FeatureCollection",
+    "features": features
 }
 
-OUTPUT.write_text(json.dumps(geojson,indent=2))
-print("Stations:",len(features))
+OUTPUT.write_text(json.dumps(geojson, indent=2))
+
+print("Stations processed:", len(features))
