@@ -1,18 +1,13 @@
 // create map
-if (window.map) {
-    window.map.remove();
-}
+document.addEventListener("DOMContentLoaded", function () {
 
-window.map = L.map("map").setView([52.5, -106], 6);
+var map = L.map("map").setView([52.5, -106], 6);
 
-
-// base map
 L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    attribution: "© OpenStreetMap"
-  }
-).addTo(map);
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{
+attribution: "© OpenStreetMap"
+}).addTo(map);
 
 
 // Saskatchewan air monitoring API
@@ -111,3 +106,5 @@ fetch(api)
   }).addTo(map);
 
 });
+
+});    
