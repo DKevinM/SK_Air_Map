@@ -22,20 +22,6 @@ var api =
 "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query?where=1=1&outFields=*&f=geojson";
 
 
-// AQHI calculation
-function calcAQHI(pm25,no2,o3){
-
-  var aqhi =
-  (10/10.4) *
-  (
-    Math.exp(0.000537 * no2) +
-    Math.exp(0.000871 * o3) +
-    Math.exp(0.000487 * pm25) - 3
-  );
-
-  return Math.round(aqhi);
-}
-
 
 // AQHI colors
 function aqhiColor(v){
@@ -62,28 +48,46 @@ function round1(v){
   return Number(v).toFixed(1);
 }    
 
+
+var aqhiLookup = {};
+fetch("data/sk_aqhi_current.geojson")
+.then(r => r.json())
+.then(data => {
+  data.features.forEach(f => {
+    var p = f.properties;
+    aqhiLookup[p.station] = {
+      aqhi: p.aqhi,
+      time: p.updated
+    };
+  });
+  loadStations();
+});
+
+
+
     
 // load stations
+function loadStations(){
+
 fetch(api)
 .then(r => r.json())
 .then(data => {
 
   console.log("Stations returned:", data.features.length);
 
-  // remove features with bad geometry
   var clean = data.features.filter(f => {
-  
+
       if (!f.geometry) return false;
       if (!f.geometry.coordinates) return false;
-  
+
       const lon = f.geometry.coordinates[0];
       const lat = f.geometry.coordinates[1];
-  
+
       if (lon === null || lat === null) return false;
       if (isNaN(lon) || isNaN(lat)) return false;
-  
+
       return true;
-  
+
   });
 
   L.geoJSON(clean, {
@@ -92,15 +96,22 @@ fetch(api)
 
       var p = feature.properties;
 
-      var aqhi = calcAQHI(p.PM2_5,p.NO2,p.O3);
+      var aqhiData = aqhiLookup[p.COMMUNITY];
 
-      return L.circleMarker(latlng,{
-        radius:8,
-        color:"#333",
-        weight:1,
-        fillColor:aqhiColor(aqhi),
-        fillOpacity:0.9
+      var aqhi = aqhiData ? aqhiData.aqhi : null;
+
+      var color = aqhiColor(aqhi);
+        
+      var icon = L.divIcon({
+        className: "aqhi-marker",
+        html:
+          "<div style='background:"+color+"'>"+
+          (aqhi ?? "")+
+          "</div>",
+        iconSize: [38,38]
       });
+        
+      return L.marker(latlng,{icon:icon});
 
     },
 
@@ -108,19 +119,25 @@ fetch(api)
 
       var p = feature.properties;
 
-      var aqhi = calcAQHI(p.PM2_5,p.NO2,p.O3);
+      var aqhiData = aqhiLookup[p.COMMUNITY];
+
+      var aqhi = aqhiData ? Number(aqhiData.aqhi) : null;
+      var aqhiTime = aqhiData ? new Date(aqhiData.time).toLocaleString() : "N/A";
 
       var time = new Date(p.DATETIME).toLocaleString();
 
       layer.bindPopup(
         "<b>"+p.COMMUNITY+"</b><br>"+
-        "AQHI: "+(aqhi ?? "N/A")+"<br>"+
-        "PM2.5: "+round1(p.PM25)+" µg/m³<br>"+
+        "AQHI (3hr): "+(aqhi ?? "N/A")+"<br>"+
+        "<hr>"+
+        "PM2.5: "+round1(p.PM2_5)+" µg/m³<br>"+
         "NO₂: "+round1(p.NO2)+" ppb<br>"+
         "O₃: "+round1(p.O3)+" ppb<br>"+
         "Wind: "+round1(p.WS)+" km/h<br>"+
         "Temp: "+round1(p.TEMP)+" °C<br>"+
-        time
+        "<hr>"+
+        "Station time: "+time+"<br>"+
+        "AQHI time: "+aqhiTime
       );
 
     }
@@ -128,5 +145,5 @@ fetch(api)
   }).addTo(map);
 
 });
-
-});    
+}
+});
