@@ -1,4 +1,4 @@
-const map = L.map("map").setView([52.5,-106],6)
+var map = L.map("map").setView([52.5,-106],6)
 
 L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -19,13 +19,13 @@ fetch(api)
 .then(r=>r.json())
 .then(data=>{
 
-const cleanFeatures = data.features.filter(f =>
+const clean = data.features.filter(f =>
     f.geometry &&
     f.geometry.coordinates &&
     f.geometry.coordinates.length === 2
 )
 
-L.geoJSON(cleanFeatures,{
+L.geoJSON(clean,{
 
 pointToLayer:(feature,latlng)=>{
 
