@@ -1,5 +1,28 @@
 const map = L.map("map").setView([52.5,-106],6)
 
+// FireSmoke forecast layer
+
+const firesmoke = L.tileLayer.wms(
+"https://firesmoke.ca/geoserver/wms",
+{
+layers: "firesmoke:pm25_surface",
+format: "image/png",
+transparent: true,
+opacity:0.6,
+attribution:"FireSmoke Canada"
+}
+)
+
+const overlays = {
+"FireSmoke Forecast": firesmoke
+}
+
+L.control.layers(null, overlays).addTo(map)
+
+
+
+firesmoke.addTo(map)
+
 L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 { attribution: "OSM"}
