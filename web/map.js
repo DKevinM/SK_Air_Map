@@ -7,9 +7,12 @@ if (window.map) {
 
     
 var map = L.map("map").setView([52.5,-106],6);
-
     
 window.map = map;
+
+var stationLayer = L.layerGroup().addTo(map);
+    
+
 
 L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -64,12 +67,13 @@ fetch("data/sk_aqhi_current.geojson")
   loadStations();
 });
 
+    
 
 
     
 // load stations
 function loadStations(){
-
+stationLayer.clearLayers();
 fetch(api)
 .then(r => r.json())
 .then(data => {
@@ -143,7 +147,7 @@ fetch(api)
 
     }
 
-  }).addTo(map);
+  }).addTo(stationLayer);
 
 });
 }
