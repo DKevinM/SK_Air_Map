@@ -19,12 +19,17 @@ fetch(api)
 .then(r=>r.json())
 .then(data=>{
 
-L.geoJSON(data,{
+const cleanFeatures = data.features.filter(f =>
+    f.geometry &&
+    f.geometry.coordinates &&
+    f.geometry.coordinates.length === 2
+)
+
+L.geoJSON(cleanFeatures,{
 
 pointToLayer:(feature,latlng)=>{
 
 const p = feature.properties
-
 const aqhi = calcAQHI(p.PM2_5,p.NO2,p.O3)
 
 return L.circleMarker(latlng,{
@@ -40,21 +45,20 @@ fillOpacity:0.9
 onEachFeature:(feature,layer)=>{
 
 const p = feature.properties
-
 const aqhi = calcAQHI(p.PM2_5,p.NO2,p.O3)
 
 const time = new Date(p.DATETIME).toLocaleString()
 
-layer.bindPopup(
-`<b>${p.COMMUNITY}</b><br>
+layer.bindPopup(`
+<b>${p.COMMUNITY}</b><br>
 AQHI: ${aqhi}<br>
 PM2.5: ${p.PM2_5}<br>
 NO₂: ${p.NO2}<br>
 O₃: ${p.O3}<br>
 Wind: ${p.WS} km/h<br>
 Temp: ${p.TEMP} °C<br>
-${time}`
-)
+${time}
+`)
 
 }
 
@@ -73,7 +77,7 @@ layers:"firesmoke:pm25_surface",
 format:"image/png",
 transparent:true,
 opacity:0.5,
-attribution:"FireSmoke Canada"
+crossOrigin:true
 }
 )
 
