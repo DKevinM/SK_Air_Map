@@ -1,44 +1,84 @@
-import pandas as pd
+#!/usr/bin/env python3
+
+import requests
 import json
+import math
 from pathlib import Path
 
-# load historical dataset
-df = pd.read_csv("../data/sk_history.csv")
+# API endpoint
+API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query"
 
-# convert datetime
-df["datetime"] = pd.to_datetime(df["DATETIME"], unit="ms")
+PARAMS = {
+    "where": "1=1",
+    "outFields": "*",
+    "f": "geojson"
+}
 
-# latest record per station
-latest = df.sort_values("datetime").groupby("STATIONID").tail(1)
+OUTPUT = Path("../data/sk_current.geojson")
+
+
+# AQHI calculation
+def calc_aqhi(pm25, no2, o3):
+
+    try:
+
+        aqhi = (10 / 10.4) * (
+            math.exp(0.000537 * no2) +
+            math.exp(0.000871 * o3) +
+            math.exp(0.000487 * pm25) - 3
+        )
+
+        return round(aqhi)
+
+    except:
+        return None
+
+
+print("Pulling SK station data...")
+
+r = requests.get(API, params=PARAMS)
+data = r.json()
 
 features = []
 
-for _, r in latest.iterrows():
+for f in data["features"]:
 
-    features.append({
+    geom = f["geometry"]
+    p = f["properties"]
+
+    pm25 = p.get("PM2_5")
+    no2 = p.get("NO2")
+    o3 = p.get("O3")
+
+    aqhi = calc_aqhi(pm25, no2, o3)
+
+    feature = {
         "type": "Feature",
-        "geometry": {
-            "type": "Point",
-            "coordinates": [r["lon"], r["lat"]]
-        },
+        "geometry": geom,
         "properties": {
-            "station": r["COMMUNITY"],
-            "pm25": r["PM2_5"],
-            "no2": r["NO2"],
-            "o3": r["O3"],
-            "temp": r["TEMP"],
-            "wind": r["WS"],
-            "datetime": str(r["datetime"])
+
+            "station": p.get("COMMUNITY"),
+            "pm25": pm25,
+            "no2": no2,
+            "o3": o3,
+            "temp": p.get("TEMP"),
+            "wind": p.get("WS"),
+            "datetime": p.get("DATETIME"),
+            "aqhi": aqhi
+
         }
-    })
+    }
+
+    features.append(feature)
+
 
 geojson = {
     "type": "FeatureCollection",
     "features": features
 }
 
-Path("../data/sk_current.geojson").write_text(
-    json.dumps(geojson, indent=2)
-)
+OUTPUT.write_text(json.dumps(geojson, indent=2))
 
-print("GeoJSON updated")
+print("GeoJSON written:", OUTPUT)
+print("Stations:", len(features))
+
