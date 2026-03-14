@@ -5,7 +5,9 @@ if (window.map) {
     window.map.remove();
 }
 
-var map = L.map("map").setView([52.5, -106], 6);
+var map = L.map("map",{
+  renderer: L.canvas()
+}).setView([52.5,-106],6);
 window.map = map;
 
 L.tileLayer(
@@ -38,7 +40,7 @@ function calcAQHI(pm25,no2,o3){
 // AQHI colors
 function aqhiColor(v){
 
-  if(v == null) return "#808080";
+  if(v == null) return "#cccccc";
 
   if(v <= 1) return "#009966";
   if(v <= 2) return "#33cc33";
@@ -51,7 +53,7 @@ function aqhiColor(v){
   if(v <= 9) return "#cc0033";
   if(v <= 10) return "#990033";
 
-  return "#660033";
+  return "#cc0033";
 }
 
 
@@ -112,10 +114,10 @@ fetch(api)
 
       layer.bindPopup(
         "<b>"+p.COMMUNITY+"</b><br>"+
-        "AQHI: "+aqhi+"<br>"+
-        "PM2.5: "+round1(p.PM2_5)+"<br>"+
-        "NO₂: "+round1(p.NO2)+"<br>"+
-        "O₃: "+round1(p.O3)+"<br>"+
+        "AQHI: "+(aqhi ?? "N/A")+"<br>"+
+        "PM2.5: "+round1(p.PM25)+" µg/m³<br>"+
+        "NO₂: "+round1(p.NO2)+" ppb<br>"+
+        "O₃: "+round1(p.O3)+" ppb<br>"+
         "Wind: "+round1(p.WS)+" km/h<br>"+
         "Temp: "+round1(p.TEMP)+" °C<br>"+
         time
