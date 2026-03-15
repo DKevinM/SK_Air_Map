@@ -24,29 +24,60 @@ attribution: "© OpenStreetMap"
 
 
 
-// FireSmoke overlay
-var smoke0 = L.imageOverlay(
-  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_0h.png?v=" + Date.now(),
-  [[35,-145],[75,-85]],
-  {opacity:0.6}
+// FireSmoke layers (GeoJSON polygons)
+
+function smokeStyle(feature){
+
+  var v = feature.properties.pm25;
+
+  if(v < 5)  return {fillColor:"#2ECC71", weight:0, color:"none", fillOpacity:0.6};
+  if(v < 10) return {fillColor:"#F1C40F", weight:0, color:"none", fillOpacity:0.6};
+  if(v < 25) return {fillColor:"#E67E22", weight:0, color:"none", fillOpacity:0.6};
+  if(v < 50) return {fillColor:"#E74C3C", weight:0, color:"none", fillOpacity:0.6};
+
+  return {fillColor:"#8E44AD", weight:0, color:"none", fillOpacity:0.7};
+}
+
+function loadSmokeLayer(url){
+
+  var layer = L.layerGroup();
+
+  fetch(url + "?v=" + Date.now())
+  .then(r => r.json())
+  .then(data => {
+
+    L.geoJSON(data,{
+      style: smokeStyle,
+      onEachFeature:function(feature,layer){
+
+        var v = feature.properties.pm25;
+
+        layer.bindTooltip(
+          "Smoke PM2.5: " + v + " µg/m³"
+        );
+
+      }
+    }).addTo(layer);
+
+  });
+
+  return layer;
+}
+
+var smoke0 = loadSmokeLayer(
+"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_now.geojson"
 );
 
-var smoke6 = L.imageOverlay(
-  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_6h.png?v=" + Date.now(),
-  [[35,-145],[75,-85]],
-  {opacity:0.6}
+var smoke6 = loadSmokeLayer(
+"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_6h.geojson"
 );
 
-var smoke12 = L.imageOverlay(
-  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_12h.png?v=" + Date.now(),
-  [[35,-145],[75,-85]],
-  {opacity:0.6}
+var smoke12 = loadSmokeLayer(
+"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_12h.geojson"
 );
 
-var smoke24 = L.imageOverlay(
-  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_24h.png?v=" + Date.now(),
-  [[35,-145],[75,-85]],
-  {opacity:0.6}
+var smoke24 = loadSmokeLayer(
+"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_24h.geojson"
 );
 
 var overlays = {
@@ -96,6 +127,7 @@ function round1(v){
 }    
 
 
+    
 var aqhiLookup = {};
 fetch("data/sk_aqhi_current.geojson")
 .then(r => r.json())
