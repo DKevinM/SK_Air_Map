@@ -43,12 +43,13 @@ for name,t in forecast_hours.items():
 
     print("Extracting", name)
 
-    grid = pm.isel(time=t).values
+    grid = pm.isel(TSTEP=t, LAY=0).values
 
     grid = np.nan_to_num(grid)
 
     grid = (grid - grid.min()) / (grid.max() - grid.min())
     grid = (grid * 255).astype(np.uint8)
+    grid = np.flipud(grid)
 
     img = Image.fromarray(grid)
 
