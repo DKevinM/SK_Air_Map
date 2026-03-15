@@ -26,19 +26,25 @@ var api =
 "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query?where=1=1&outFields=*&f=geojson";
 
 
-var fireSmokeLayer = L.tileLayer(
-  "https://firesmoke.ca/tiles/{z}/{x}/{y}.png",
+var fireSmoke = L.tileLayer.wms(
+  "https://services.firesmoke.ca/wms",
   {
-    opacity: 0.6,
-    attribution: "FireSmoke Canada"
+    layers: "firesmoke:pm25",
+    format: "image/png",
+    transparent: true,
+    attribution: "FireSmoke Canada",
+    opacity: 0.6
   }
 );
 
+fireSmoke.addTo(map);
+    
 var overlays = {
-  "FireSmoke Forecast": fireSmokeLayer
+  "FireSmoke Forecast PM2.5": fireSmoke
 };
 
 L.control.layers(null, overlays).addTo(map);
+
 
     
 
