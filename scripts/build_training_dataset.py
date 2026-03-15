@@ -23,7 +23,7 @@ for f in files:
 # ----------------------------------
 # Load station metadata
 # ----------------------------------
-stations = pd.read_csv("dataSK/stations.csv")
+stations = pd.read_csv("data/stations.csv")
 
 
 # ----------------------------
