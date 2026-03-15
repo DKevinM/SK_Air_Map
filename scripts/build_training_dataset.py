@@ -11,7 +11,7 @@ dfs = []
 
 for f in files:
 
-    df = pd.read_csv(f, sep="\t")
+    df = pd.read_csv(f, sep=None, engine="python")
 
     print(df.columns)
     
