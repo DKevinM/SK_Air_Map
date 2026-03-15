@@ -21,6 +21,21 @@ attribution: "© OpenStreetMap"
 }).addTo(map);
 
 
+
+
+
+// FireSmoke overlay
+var smoke = L.imageOverlay(
+  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_latest.png?v=" + Date.now(),
+  [[40,-140],[70,-90]],
+  {opacity:0.6}
+).addTo(map);
+
+
+
+    
+
+    
 // Saskatchewan air monitoring API
 var api =
 "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query?where=1=1&outFields=*&f=geojson";
