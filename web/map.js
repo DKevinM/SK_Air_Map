@@ -26,6 +26,21 @@ var api =
 "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query?where=1=1&outFields=*&f=geojson";
 
 
+var fireSmokeLayer = L.tileLayer(
+  "https://firesmoke.ca/tiles/{z}/{x}/{y}.png",
+  {
+    opacity: 0.6,
+    attribution: "FireSmoke Canada"
+  }
+);
+
+var overlays = {
+  "FireSmoke Forecast": fireSmokeLayer
+};
+
+L.control.layers(null, overlays).addTo(map);
+
+    
 
 // AQHI colors
 function aqhiColor(v){
