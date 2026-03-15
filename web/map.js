@@ -27,10 +27,15 @@ attribution: "© OpenStreetMap"
 // FireSmoke overlay
 var smoke = L.imageOverlay(
   "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_latest.png?v=" + Date.now(),
-  [[40,-140],[70,-90]],
+  [[35,-145],[75,-85]],
   {opacity:0.6}
-).addTo(map);
+);
 
+var overlays = {
+  "FireSmoke Forecast": smoke
+};
+
+L.control.layers(null, overlays).addTo(map);
 
 
     
@@ -40,25 +45,6 @@ var smoke = L.imageOverlay(
 var api =
 "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query?where=1=1&outFields=*&f=geojson";
 
-
-var fireSmoke = L.tileLayer.wms(
-  "https://services.firesmoke.ca/wms",
-  {
-    layers: "firesmoke:pm25",
-    format: "image/png",
-    transparent: true,
-    attribution: "FireSmoke Canada",
-    opacity: 0.6
-  }
-);
-
-fireSmoke.addTo(map);
-    
-var overlays = {
-  "FireSmoke Forecast PM2.5": fireSmoke
-};
-
-L.control.layers(null, overlays).addTo(map);
 
 
     
