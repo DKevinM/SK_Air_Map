@@ -30,11 +30,11 @@ function smokeStyle(feature){
 
   var v = feature.properties.pm25;
 
-  if(v < 5)  return {fillColor:"#ffffcc", weight:0, color:"none", fillOpacity:0.3};
-  if(v < 10) return {fillColor:"#ffeda0", weight:0, color:"none", fillOpacity:0.4};
-  if(v < 25) return {fillColor:"#feb24c", weight:0, color:"none", fillOpacity:0.5};
-  if(v < 50) return {fillColor:"#f03b20", weight:0, color:"none", fillOpacity:0.6};
-  if(v < 100) return {fillColor:"#bd0026", weight:0, color:"none", fillOpacity:0.7};
+  if(v < 5)  return {fillColor:"#ffffcc", weight:0, color:"none", fillOpacity:0.5};
+  if(v < 10) return {fillColor:"#ffeda0", weight:0, color:"none", fillOpacity:0.6};
+  if(v < 25) return {fillColor:"#feb24c", weight:0, color:"none", fillOpacity:0.7};
+  if(v < 50) return {fillColor:"#f03b20", weight:0, color:"none", fillOpacity:0.8};
+  if(v < 100) return {fillColor:"#bd0026", weight:0, color:"none", fillOpacity:0.9};
 
   return {fillColor:"#800026", weight:0, color:"none", fillOpacity:0.95};
 }
