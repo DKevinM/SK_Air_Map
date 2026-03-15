@@ -10,6 +10,12 @@ urllib3.disable_warnings()
 DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
 
+# region of interest (Prairies / Saskatchewan focus)
+LAT_MIN = 48
+LAT_MAX = 60
+LON_MIN = -115
+LON_MAX = -100
+
 url = "https://services.firesmoke.ca/forecasts/current/dispersion.nc"
 nc_file = DATA_DIR / "firesmoke.nc"
 
@@ -62,18 +68,39 @@ for name,t in forecast_hours.items():
         for c in range(0, cols, STEP):
 
             value = float(grid[r,c])
+            # skip negligible smoke
+            if value < 0.5:
+                continue            
 
             if np.isnan(value):
                 continue
+                
+            # smooth smoke classes
+            if value < 5: value = 2
+            elif value < 10: value = 7
+            elif value < 25: value = 17
+            elif value < 50: value = 37
+            else: value = 75
+          
+
+
 
             lat = lat_min + r * lat_step
             lon = lon_min + c * lon_step
+            
+            # skip outside region
+            if lat < LAT_MIN or lat > LAT_MAX:
+                continue
+            
+            if lon < LON_MIN or lon > LON_MAX:
+                continue
 
+            
             poly = [
                 [lon, lat],
-                [lon + lon_step*STEP, lat],
-                [lon + lon_step*STEP, lat + lat_step*STEP],
-                [lon, lat + lat_step*STEP],
+                [lon + lon_step*STEP*1.02, lat],
+                [lon + lon_step*STEP*1.02, lat + lat_step*STEP*1.02],
+                [lon, lat + lat_step*STEP*1.02],
                 [lon, lat]
             ]
 
