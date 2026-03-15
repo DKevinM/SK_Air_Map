@@ -27,4 +27,7 @@ jobs:
       - name: Run dataset build script
         run: |
           python scripts/build_training_dataset.py
+      
+      - name: Train models
+        run: python scripts/train_rf_model.py    
 
