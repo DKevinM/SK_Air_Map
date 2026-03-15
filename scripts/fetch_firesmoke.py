@@ -1,6 +1,10 @@
 import requests
+import urllib3
 from datetime import datetime, timedelta
 from pathlib import Path
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 # output directory
 DATA_DIR = Path("data")
@@ -39,7 +43,7 @@ for h in hours:
 
     print("Downloading", out_file)
 
-    r = requests.get(base_url, params=params)
+    r = requests.get(base_url, params=params, verify=False, timeout=60)
 
     if r.status_code == 200:
         with open(out_file, "wb") as f:
