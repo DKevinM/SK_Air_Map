@@ -35,7 +35,7 @@ print(ds)
 pm = ds["PM25"]
 
 # Downsample step
-STEP = 15
+STEP = 8
 
 forecast_hours = {
     "now":0,
