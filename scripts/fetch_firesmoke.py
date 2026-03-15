@@ -1,50 +1,59 @@
 import requests
-import urllib3
-from datetime import datetime, timedelta
+import xarray as xr
+import numpy as np
 from pathlib import Path
+from PIL import Image
+import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+urllib3.disable_warnings()
 
-
-# output directory
 DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
 
-# forecast hours to download
-hours = [0, 6, 12, 24]
+url = "https://services.firesmoke.ca/forecasts/current/dispersion.nc"
 
-# bounding box covering Canada
-bbox = "-145,35,-85,75"
+nc_file = DATA_DIR / "firesmoke.nc"
 
-base_url = "https://services.firesmoke.ca/wms"
+print("Downloading FireSmoke forecast...")
 
-for h in hours:
+r = requests.get(url, verify=False, timeout=120)
 
-    forecast_time = datetime.utcnow() + timedelta(hours=h)
+with open(nc_file, "wb") as f:
+    f.write(r.content)
 
-    time_str = forecast_time.strftime("%Y-%m-%dT%H:00:00Z")
+print("Saved:", nc_file)
 
-    params = {
-        "service": "WMS",
-        "request": "GetMap",
-        "layers": "firesmoke:pm25",
-        "styles": "",
-        "format": "image/png",
-        "transparent": "true",
-        "version": "1.1.1",
-        "width": 1200,
-        "height": 800,
-        "srs": "EPSG:4326",
-        "bbox": bbox,
-        "time": time_str
-    }
+print("Opening NetCDF...")
 
-    out_file = DATA_DIR / f"firesmoke_{h}h.png"
+ds = xr.open_dataset(nc_file)
 
-    print("Downloading", out_file)
+# Inspect variables once if needed
+print(ds)
 
-    r = requests.get(base_url, params=params, verify=False, timeout=60)
+pm = ds["PM25"]
 
-    if r.status_code == 200:
-        with open(out_file, "wb") as f:
-            f.write(r.content)
+forecast_hours = {
+    "0h":0,
+    "6h":6,
+    "12h":12,
+    "24h":24
+}
+
+for name,t in forecast_hours.items():
+
+    print("Extracting", name)
+
+    grid = pm.isel(time=t).values
+
+    grid = np.nan_to_num(grid)
+
+    grid = (grid - grid.min()) / (grid.max() - grid.min())
+    grid = (grid * 255).astype(np.uint8)
+
+    img = Image.fromarray(grid)
+
+    outfile = DATA_DIR / f"firesmoke_{name}.png"
+
+    img.save(outfile)
+
+    print("Saved:", outfile)
