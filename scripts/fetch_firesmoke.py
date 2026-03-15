@@ -80,7 +80,7 @@ for name,t in forecast_hours.items():
             features.append({
                 "type":"Feature",
                 "properties":{
-                    "pm25":round(value,2),
+                    "pm25":float(value),
                     "forecast":name
                 },
                 "geometry":{
