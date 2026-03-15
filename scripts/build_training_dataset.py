@@ -12,7 +12,7 @@ dfs = []
 for f in files:
 
     df = pd.read_csv(f)
-    df["datetime"] = pd.to_datetime(df["date"])
+    df["datetime"] = pd.to_datetime(df["datetime"])
     df.replace(-9999, np.nan, inplace=True)
     dfs.append(df)
 
