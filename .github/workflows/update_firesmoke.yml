@@ -1,4 +1,4 @@
-name: Update FireSmoke
+fname: Update FireSmoke
 
 permissions:
   contents: write
@@ -30,7 +30,7 @@ jobs:
 
       - name: Download FireSmoke
         run: |
-          python scripts/download_firesmoke.py
+          python scripts/fetch_firesmoke.py
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v6
