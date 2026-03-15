@@ -11,7 +11,10 @@ dfs = []
 
 for f in files:
 
-    df = pd.read_csv(f)
+    df = pd.read_csv(f, sep="\t")
+
+    print(df.columns)
+    
     df["datetime"] = pd.to_datetime(df["datetime"])
     df.replace(-9999, np.nan, inplace=True)
     dfs.append(df)
