@@ -30,7 +30,40 @@ data = pd.concat(dfs)
 # ----------------------------
 # STEP 3 — station as category
 # ----------------------------
+data = pd.concat(dfs)
 data["station"] = data["station"].astype("category")
+data = data.sort_values(["station","datetime"])
+
+# ------------------------------------------------
+# WIND VECTOR FEATURES
+# ------------------------------------------------
+rad = np.deg2rad(data["WD"])
+data["U"] = -data["WS"] * np.sin(rad)
+data["V"] = -data["WS"] * np.cos(rad)
+
+
+# ------------------------------------
+# Fill small gaps (max 3 hours)
+# ------------------------------------
+cols = ["PM25","NO2","O3","WS","WD","TEMP","RH"]
+for c in cols:
+    data[c] = data.groupby("station")[c].transform(
+        lambda x: x.interpolate(limit=3, limit_direction="both")
+    )
+
+
+# ------------------------------------------------
+# TIME FEATURES (seasonality)
+# ------------------------------------------------
+# day of year (seasonality)
+data["doy"] = data["datetime"].dt.dayofyear
+data["sin_doy"] = np.sin(2*np.pi*data["doy"]/365)
+data["cos_doy"] = np.cos(2*np.pi*data["doy"]/365)
+
+# hour of day (diurnal cycle)
+data["hour"] = data["datetime"].dt.hour
+data["sin_hour"] = np.sin(2*np.pi*data["hour"]/24)
+data["cos_hour"] = np.cos(2*np.pi*data["hour"]/24)
 
 
 # ----------------------------
@@ -38,18 +71,34 @@ data["station"] = data["station"].astype("category")
 # ----------------------------
 data = data.sort_values(["station", "datetime"])
 
-
-# ----------------------------
-# STEP 4 — lag variables
-# ----------------------------
+# ------------------------------------------------
+# LAG FEATURES
+# ------------------------------------------------
 for lag in [1,2,3]:
+
     data[f"PM25_lag{lag}"] = data.groupby("station")["PM25"].shift(lag)
+    data[f"O3_lag{lag}"] = data.groupby("station")["O3"].shift(lag)
+    data[f"NO2_lag{lag}"] = data.groupby("station")["NO2"].shift(lag)
 
 
-# remove rows with missing lag data
+# ------------------------------------------------
+# 3-hour rolling averages
+# ------------------------------------------------
+data["pm25_3hr"] = data.groupby("station")["PM25"].rolling(3).mean().reset_index(level=0,drop=True)
+data["o3_3hr"] = data.groupby("station")["O3"].rolling(3).mean().reset_index(level=0,drop=True)
+data["no2_3hr"] = data.groupby("station")["NO2"].rolling(3).mean().reset_index(level=0,drop=True)
+
+
+# ------------------------------------------------
+# Remove incomplete rows
+# ------------------------------------------------
 data = data.dropna()
 
 
-data.to_csv("training_dataset.csv", index=False)
+# ------------------------------------------------
+# Save dataset
+# ------------------------------------------------
+data.to_csv("training_dataset.csv",index=False)
+print("Training dataset built")
 
-print("Training dataset created")
+
