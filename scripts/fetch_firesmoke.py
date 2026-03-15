@@ -1,8 +1,8 @@
 import requests
 import xarray as xr
 import numpy as np
+import json
 from pathlib import Path
-from PIL import Image
 import urllib3
 
 urllib3.disable_warnings()
@@ -11,7 +11,6 @@ DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
 
 url = "https://services.firesmoke.ca/forecasts/current/dispersion.nc"
-
 nc_file = DATA_DIR / "firesmoke.nc"
 
 print("Downloading FireSmoke forecast...")
@@ -23,38 +22,81 @@ with open(nc_file, "wb") as f:
 
 print("Saved:", nc_file)
 
-print("Opening NetCDF...")
-
 ds = xr.open_dataset(nc_file)
 
-# Inspect variables once if needed
 print(ds)
 
 pm = ds["PM25"]
 
+# Downsample step
+STEP = 15
+
 forecast_hours = {
-    "0h":0,
+    "now":0,
     "6h":6,
     "12h":12,
     "24h":24
 }
 
+# grid size
+rows = pm.shape[2]
+cols = pm.shape[3]
+
+# approximate geographic bounds of the grid
+lon_min, lon_max = -145, -85
+lat_min, lat_max = 35, 75
+
+lon_step = (lon_max - lon_min) / cols
+lat_step = (lat_max - lat_min) / rows
+
 for name,t in forecast_hours.items():
 
-    print("Extracting", name)
+    print("Processing:", name)
 
     grid = pm.isel(TSTEP=t, LAY=0).values
-
-    grid = np.nan_to_num(grid)
-
-    grid = (grid - grid.min()) / (grid.max() - grid.min())
-    grid = (grid * 255).astype(np.uint8)
     grid = np.flipud(grid)
 
-    img = Image.fromarray(grid)
+    features = []
 
-    outfile = DATA_DIR / f"firesmoke_{name}.png"
+    for r in range(0, rows, STEP):
+        for c in range(0, cols, STEP):
 
-    img.save(outfile)
+            value = float(grid[r,c])
 
-    print("Saved:", outfile)
+            if np.isnan(value):
+                continue
+
+            lat = lat_min + r * lat_step
+            lon = lon_min + c * lon_step
+
+            poly = [
+                [lon, lat],
+                [lon + lon_step*STEP, lat],
+                [lon + lon_step*STEP, lat + lat_step*STEP],
+                [lon, lat + lat_step*STEP],
+                [lon, lat]
+            ]
+
+            features.append({
+                "type":"Feature",
+                "properties":{
+                    "pm25":round(value,2),
+                    "forecast":name
+                },
+                "geometry":{
+                    "type":"Polygon",
+                    "coordinates":[poly]
+                }
+            })
+
+    geojson = {
+        "type":"FeatureCollection",
+        "features":features
+    }
+
+    outfile = DATA_DIR / f"firesmoke_{name}.geojson"
+
+    with open(outfile,"w") as f:
+        json.dump(geojson,f)
+
+    print("Saved:", outfile, "features:", len(features))
