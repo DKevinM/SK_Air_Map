@@ -12,35 +12,34 @@ dfs = []
 for f in files:
 
     df = pd.read_csv(f)
-
-    station = Path(f).stem
-    df["station"] = station
-
     df["datetime"] = pd.to_datetime(df["date"])
-
     df.replace(-9999, np.nan, inplace=True)
-
     dfs.append(df)
 
 
+# ----------------------------------
+# Load station metadata
+# ----------------------------------
+stations = pd.read_csv("dataSK/stations.csv")
+
+
+# ----------------------------
 # combine stations
+# ----------------------------
 data = pd.concat(dfs)
 
 
-# ----------------------------
-# STEP 3 — station as category
-# ----------------------------
-data = pd.concat(dfs)
-data["station"] = data["station"].astype("category")
+# ----------------------------------
+# Merge station coordinates
+# ----------------------------------
+data = data.merge(stations, on="station", how="left")
+
+data["station"] = data["station"].astype(int)
+
 data = data.sort_values(["station","datetime"])
 
-# ------------------------------------------------
-# WIND VECTOR FEATURES
-# ------------------------------------------------
-rad = np.deg2rad(data["WD"])
-data["U"] = -data["WS"] * np.sin(rad)
-data["V"] = -data["WS"] * np.cos(rad)
-
+print(data["station"].unique())
+print(data[["station","name"]].drop_duplicates())
 
 # ------------------------------------
 # Fill small gaps (max 3 hours)
@@ -50,6 +49,40 @@ for c in cols:
     data[c] = data.groupby("station")[c].transform(
         lambda x: x.interpolate(limit=3, limit_direction="both")
     )
+
+
+
+# ------------------------------------------------
+# WIND VECTOR FEATURES
+# ------------------------------------------------
+rad = np.deg2rad(data["WD"])
+
+data["U"] = -data["WS"] * np.sin(rad)
+data["V"] = -data["WS"] * np.cos(rad)
+
+
+# ----------------------------------
+# Wind transport proxy
+# ----------------------------------
+# difference from network centre
+data["dlat"] = data["lat"] - data["lat"].mean()
+data["dlon"] = data["lon"] - data["lon"].mean()
+
+# transport index
+data["transport_index"] = data["U"] * data["dlat"] + data["V"] * data["dlon"]
+
+
+# ------------------------------------------------
+# Normalize lat and lon
+# ------------------------------------------------
+data["lat_norm"] = (data["lat"] - data["lat"].mean()) / data["lat"].std()
+data["lon_norm"] = (data["lon"] - data["lon"].mean()) / data["lon"].std()
+
+data["dist_center"] = np.sqrt(
+    (data["lat"] - data["lat"].mean())**2 +
+    (data["lon"] - data["lon"].mean())**2
+)
+
 
 
 # ------------------------------------------------
@@ -71,10 +104,11 @@ data["cos_hour"] = np.cos(2*np.pi*data["hour"]/24)
 # ----------------------------
 data = data.sort_values(["station", "datetime"])
 
+
 # ------------------------------------------------
 # LAG FEATURES
 # ------------------------------------------------
-for lag in [1,2,3]:
+for lag in [1,2,3,6,12,24]:
 
     data[f"PM25_lag{lag}"] = data.groupby("station")["PM25"].shift(lag)
     data[f"O3_lag{lag}"] = data.groupby("station")["O3"].shift(lag)
