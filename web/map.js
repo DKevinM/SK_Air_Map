@@ -25,14 +25,35 @@ attribution: "© OpenStreetMap"
 
 
 // FireSmoke overlay
-var smoke = L.imageOverlay(
-  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_latest.png?v=" + Date.now(),
+var smoke0 = L.imageOverlay(
+  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_0h.png?v=" + Date.now(),
+  [[35,-145],[75,-85]],
+  {opacity:0.6}
+);
+
+var smoke6 = L.imageOverlay(
+  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_6h.png?v=" + Date.now(),
+  [[35,-145],[75,-85]],
+  {opacity:0.6}
+);
+
+var smoke12 = L.imageOverlay(
+  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_12h.png?v=" + Date.now(),
+  [[35,-145],[75,-85]],
+  {opacity:0.6}
+);
+
+var smoke24 = L.imageOverlay(
+  "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_24h.png?v=" + Date.now(),
   [[35,-145],[75,-85]],
   {opacity:0.6}
 );
 
 var overlays = {
-  "FireSmoke Forecast": smoke
+  "Smoke Now": smoke0,
+  "Smoke +6 hr": smoke6,
+  "Smoke +12 hr": smoke12,
+  "Smoke +24 hr": smoke24
 };
 
 L.control.layers(null, overlays).addTo(map);
