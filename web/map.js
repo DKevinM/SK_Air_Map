@@ -135,7 +135,7 @@ fetch("data/sk_aqhi_current.geojson")
 .then(data => {
   data.features.forEach(f => {
     var p = f.properties;
-    aqhiLookup[p.station] = {
+    aqhiLookup[p.station.toUpperCase()] = {
       aqhi: p.aqhi,
       time: p.updated
     };
@@ -177,7 +177,7 @@ fetch(api)
 
       var p = feature.properties;
 
-      var aqhiData = aqhiLookup[p.COMMUNITY];
+      var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
 
       var aqhi = aqhiData ? aqhiData.aqhi : null;
 
