@@ -214,7 +214,7 @@ fetch(api)
 
       layer.bindPopup(
         "<b>"+p.COMMUNITY+"</b><br>"+
-        "AQHI (3hr): "+(aqhi ?? "N/A")+"<br>"+
+        "AQHI (3hr): "+(AQHI ?? "N/A")+"<br>"+
         "<hr>"+
         "PM2.5: "+round1(p.PM2_5)+" µg/m³<br>"+
         "NO₂: "+round1(p.NO2)+" ppb<br>"+
@@ -223,7 +223,7 @@ fetch(api)
         "Temp: "+round1(p.TEMP)+" °C<br>"+
         "<hr>"+
         "Station time: "+time+"<br>"+
-        "AQHI time: "+aqhiTime
+        "AQHI updated: "+aqhiTime
       );
 
     }
