@@ -126,5 +126,18 @@ for name,t in forecast_hours.items():
     with open(outfile,"w") as f:
         json.dump(geojson,f)
 
+    
+    from datetime import datetime, timedelta
+    date = int(tflag[0, 0, 0])
+    time = int(tflag[0, 0, 1])
+    year = date // 1000
+    day = date % 1000
+    hour = time // 10000
+    minute = (time % 10000) // 100
+    second = time % 100
+    smoke_time = datetime(year, 1, 1) + timedelta(days=day-1)
+    smoke_time = smoke_time.replace(hour=hour, minute=minute, second=second)
+
+    
     print("Saved:", outfile, "features:", len(features))
     print("FireSmoke timestamp:", smoke_time)
