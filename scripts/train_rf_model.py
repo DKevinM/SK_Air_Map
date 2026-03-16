@@ -3,13 +3,16 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 import joblib
+import os
+os.makedirs("models", exist_ok=True)
 
 
 # ---------------------------
 # Load dataset
 # ---------------------------
-data = pd.read_csv("training_dataset.csv")
-
+data = pd.read_csv("data/training_dataset.csv")
+print("Rows:", len(data))
+print("Columns:", data.columns)
 
 # ---------------------------
 # Targets (1 hour forecast)
