@@ -137,7 +137,7 @@ fetch("data/sk_aqhi_current.geojson")
     var p = f.properties;
 
     aqhiLookup[p.station.toUpperCase()] = {
-      aqhi: p.AQHI,
+      aqhi: Number(p.AQHI),
       time: p.updated
     };
 
@@ -185,6 +185,7 @@ fetch(api)
       var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
 
       var aqhi = aqhiData ? aqhiData.aqhi : null;
+      var aqhiTime = aqhiData ? new Date(aqhiData.time).toLocaleString() : "N/A";
 
       var color = aqhiColor(aqhi);
         
