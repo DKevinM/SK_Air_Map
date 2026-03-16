@@ -135,11 +135,16 @@ fetch("data/sk_aqhi_current.geojson")
 .then(data => {
   data.features.forEach(f => {
     var p = f.properties;
+
     aqhiLookup[p.station.toUpperCase()] = {
-      aqhi: p.aqhi,
+      aqhi: p.AQHI,
       time: p.updated
     };
+
   });
+
+  console.log("AQHI lookup table:", aqhiLookup);
+
   loadStations();
 });
 
