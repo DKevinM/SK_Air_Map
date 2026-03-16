@@ -135,7 +135,7 @@ data = data.dropna()
 # ------------------------------------------------
 # Save dataset
 # ------------------------------------------------
-data.to_csv("training_dataset.csv",index=False)
+data.to_csv("data/training_dataset.csv",index=False)
 print("Training dataset built")
 
 
