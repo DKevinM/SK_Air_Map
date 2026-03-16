@@ -52,19 +52,24 @@ def train_model(target, name):
     )
 
     model = RandomForestRegressor(
-        n_estimators=300,
-        max_depth=20,
+        n_estimators=200,
+        max_depth=12,
+        min_samples_leaf=5,
         n_jobs=-1,
         random_state=42
     )
 
     model.fit(X_train, y_train)
-
     score = model.score(X_test, y_test)
-
     print(f"{name} model R²:", score)
-
     joblib.dump(model, f"models/{name}_model.pkl")
+    importance = pd.Series(
+        model.feature_importances_,
+        index=feature_cols
+    ).sort_values(ascending=False)
+    
+    print(f"\nTop features for {name}:")
+    print(importance.head(10))
 
 
 # ---------------------------
@@ -73,3 +78,8 @@ def train_model(target, name):
 train_model("PM25_target","pm25")
 train_model("O3_target","o3")
 train_model("NO2_target","no2")
+
+
+
+
+
