@@ -197,6 +197,7 @@ fetch(api)
         iconSize: [38,38]
       });
         
+      console.log(p.COMMUNITY, aqhiLookup[p.COMMUNITY.toUpperCase()]);  
       return L.marker(latlng,{icon:icon});
 
     },
@@ -214,7 +215,7 @@ fetch(api)
 
       layer.bindPopup(
         "<b>"+p.COMMUNITY+"</b><br>"+
-        "AQHI (3hr): "+(AQHI ?? "N/A")+"<br>"+
+        "AQHI (3hr): "+(aqhi ?? "N/A")+"<br>"+
         "<hr>"+
         "PM2.5: "+round1(p.PM2_5)+" µg/m³<br>"+
         "NO₂: "+round1(p.NO2)+" ppb<br>"+
