@@ -15,7 +15,7 @@ cutoff_ms = cutoff.timestamp() * 1000
 # pull station data
 r = requests.get(API, params={
     "where": "1=1",
-    "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
+    "outFields": "COMMUNITY,PM2_5,NO2,O3,WS,WD,TEMP,RH,DATETIME",
     "f": "geojson",
     "resultRecordCount": 1000
 })
@@ -28,21 +28,21 @@ if "features" not in data:
     raise SystemExit
 
 
-def calc_aqhi(pm25, no2, o3):
+def calc_aqhi(PM25, NO2, O3):
 
     try:
 
-        pm25 = float(pm25)
-        no2 = float(no2)
-        o3 = float(o3)
+        PM25 = float(PM25)
+        NO2 = float(NO2)
+        O3 = float(O3)
 
-        if pm25 <= -999 or no2 <= -999 or o3 <= -999:
+        if PM25 <= -999 or NO2 <= -999 or O3 <= -999:
             return None
 
         aqhi = (10/10.4) * (100*(
-            math.exp(0.000871 * no2) +
-            math.exp(0.000537 * o3) +
-            math.exp(0.000487 * pm25) - 3
+            math.exp(0.000871 * NO2) +
+            math.exp(0.000537 * O3) +
+            math.exp(0.000487 * PM25) - 3
         ))
 
         aqhi = round(aqhi)
@@ -72,15 +72,23 @@ for f in data["features"]:
 
     stations.setdefault(station, {
         "geometry": f["geometry"],
-        "pm25": [],
-        "no2": [],
-        "o3": [],
+        "PM25": [],
+        "NO2": [],
+        "O3": [],
+        "WS": [],
+        "WD": [],
+        "TEMP": [],
+        "RH": [],        
         "times": []
     })
 
-    stations[station]["pm25"].append(p.get("PM2_5"))
-    stations[station]["no2"].append(p.get("NO2"))
-    stations[station]["o3"].append(p.get("O3"))
+    stations[station]["PM25"].append(p.get("PM2_5"))
+    stations[station]["NO2"].append(p.get("NO2"))
+    stations[station]["O3"].append(p.get("O3"))
+    stations[station]["WS"].append(p.get("WS"))    
+    stations[station]["WD"].append(p.get("WD"))
+    stations[station]["TEMP"].append(p.get("TEMP"))
+    stations[station]["RH"].append(p.get("RH"))
     stations[station]["times"].append(p.get("DATETIME"))
 
 
@@ -88,31 +96,70 @@ features = []
 
 for station, s in stations.items():
 
-    pm25 = [v for v in s["pm25"] if v and v > -999]
-    no2 = [v for v in s["no2"] if v and v > -999]
-    o3 = [v for v in s["o3"] if v and v > -999]
-
-    if not pm25 or not no2 or not o3:
+    PM25 = [v for v in s["PM25"] if v is not None and v > -999]
+    NO2  = [v for v in s["NO2"] if v is not None and v > -999]
+    O3   = [v for v in s["O3"] if v is not None and v > -999]
+    
+    WS   = [v for v in s["WS"] if v is not None and v > -999]
+    WD   = [v for v in s["WD"] if v is not None and v > -999]
+    TEMP = [v for v in s["TEMP"] if v is not None and v > -999]
+    RH   = [v for v in s["RH"] if v is not None and v > -999]
+    
+    if not PM25 or not NO2 or not O3:
         continue
 
-    pm25_avg = sum(pm25) / len(pm25)
-    no2_avg = sum(no2) / len(no2)
-    o3_avg = sum(o3) / len(o3)
+    PM25_avg = sum(PM25) / len(PM25)
+    NO2_avg = sum(NO2) / len(NO2)
+    O3_avg = sum(O3) / len(O3)
 
-    aqhi = calc_aqhi(pm25_avg, no2_avg, o3_avg)
-
-    latest_time = max(s["times"])
+    aqhi = calc_aqhi(PM25_avg, NO2_avg, O3_avg)
+    
+    latest_idx = None
+    
+    for i in sorted(range(len(s["times"])), key=lambda x: s["times"][x], reverse=True):
+        if (
+            s["PM25"][i] is not None and s["PM25"][i] > -999 and
+            s["NO2"][i] is not None and s["NO2"][i] > -999 and
+            s["O3"][i] is not None and s["O3"][i] > -999
+        ):
+            latest_idx = i
+            break
+    
+    if latest_idx is None:
+        continue
+    
+    latest_time = s["times"][latest_idx]
     latest_dt = datetime.fromtimestamp(latest_time/1000, timezone.utc).isoformat()
+      
+    latest_PM25 = s["PM25"][latest_idx]
+    latest_NO2 = s["NO2"][latest_idx]
+    latest_O3 = s["O3"][latest_idx]
+    
+    latest_WS = s["WS"][latest_idx]
+    latest_WD = s["WD"][latest_idx]
+    latest_TEMP = s["TEMP"][latest_idx]
+    latest_RH = s["RH"][latest_idx]    
 
+    
     features.append({
         "type": "Feature",
         "geometry": s["geometry"],
         "properties": {
             "station": station,
-            "aqhi": aqhi,
-            "pm25_3hr": round(pm25_avg,1),
-            "no2_3hr": round(no2_avg,1),
-            "o3_3hr": round(o3_avg,1),
+            # latest hour (used by forecast model)
+            "PM25": round(latest_PM25,1) if latest_PM25 is not None else None,
+            "NO2": round(latest_NO2,1) if latest_NO2 is not None else None,
+            "O3": round(latest_O3,1) if latest_O3 is not None else None,
+            "WS": latest_WS if latest_WS is not None else None,
+            "WD": latest_WD if latest_WD is not None else None,
+            "TEMP": latest_TEMP if latest_TEMP is not None else None,
+            "RH": latest_RH if latest_RH is not None else None,
+            # 3-hour averages (used for AQHI)
+            "PM25_3hr": round(PM25_avg,1),
+            "NO2_3hr": round(NO2_avg,1),
+            "O3_3hr": round(O3_avg,1),
+        
+            "AQHI": aqhi,
             "updated": latest_dt
         }
     })
