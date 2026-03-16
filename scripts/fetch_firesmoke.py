@@ -127,3 +127,4 @@ for name,t in forecast_hours.items():
         json.dump(geojson,f)
 
     print("Saved:", outfile, "features:", len(features))
+    print("FireSmoke timestamp:", smoke_time)
