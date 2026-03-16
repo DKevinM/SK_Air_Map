@@ -207,9 +207,9 @@ fetch(api)
 
       var p = feature.properties;
 
-      var aqhiData = aqhiLookup[p.COMMUNITY];
+      var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
 
-      var aqhi = aqhiData ? Number(aqhiData.aqhi) : null;
+      var aqhi = aqhiData ? aqhiData.aqhi : null;
       var aqhiTime = aqhiData ? new Date(aqhiData.time).toLocaleString() : "N/A";
 
       var time = new Date(p.DATETIME).toLocaleString();
