@@ -4,6 +4,8 @@ import numpy as np
 import json
 from pathlib import Path
 import urllib3
+from datetime import datetime, timedelta
+
 
 urllib3.disable_warnings()
 
@@ -29,8 +31,19 @@ with open(nc_file, "wb") as f:
 print("Saved:", nc_file)
 
 ds = xr.open_dataset(nc_file)
-
 print(ds)
+
+tflag = ds["TFLAG"].values
+date = int(tflag[0, 0, 0])
+time = int(tflag[0, 0, 1])
+year = date // 1000
+day = date % 1000
+hour = time // 10000
+minute = (time % 10000) // 100
+second = time % 100
+smoke_time = datetime(year, 1, 1) + timedelta(days=day-1)
+smoke_time = smoke_time.replace(hour=hour, minute=minute, second=second)
+print("FireSmoke timestamp:", smoke_time)
 
 pm = ds["PM25"]
 
@@ -55,89 +68,85 @@ lat_min, lat_max = 35, 75
 lon_step = (lon_max - lon_min) / cols
 lat_step = (lat_max - lat_min) / rows
 
-for name,t in forecast_hours.items():
 
-    print("Processing:", name)
+
+# Precompute lat/lon centers once
+lat_vals = lat_min + np.arange(rows) * lat_step
+lon_vals = lon_min + np.arange(cols) * lon_step
+
+# Region mask once
+region_mask = (
+    (lat_vals[:, None] >= LAT_MIN) &
+    (lat_vals[:, None] <= LAT_MAX) &
+    (lon_vals[None, :] >= LON_MIN) &
+    (lon_vals[None, :] <= LON_MAX)
+)
+
+
+
+for name, t in forecast_hours.items():
+
+    forecast_time = smoke_time + timedelta(hours=t)
+    print("Processing:", name, forecast_time)
 
     grid = pm.isel(TSTEP=t, LAY=0).values
     grid = np.flipud(grid)
 
+    grid_ds = grid[::STEP, ::STEP]
+    lat_ds = lat_vals[::STEP]
+    lon_ds = lon_vals[::STEP]
+    region_mask_ds = region_mask[::STEP, ::STEP]
+
+    valid_mask = (~np.isnan(grid_ds)) & (grid_ds >= 0.5) & region_mask_ds
+    valid_rc = np.argwhere(valid_mask)
+
     features = []
 
-    for r in range(0, rows, STEP):
-        for c in range(0, cols, STEP):
+    for r_idx, c_idx in valid_rc:
+        value = float(grid_ds[r_idx, c_idx])
+        lat = lat_ds[r_idx]
+        lon = lon_ds[c_idx]
 
-            value = float(grid[r,c])
-            # skip negligible smoke
-            if value < 0.5:
-                continue            
+        if value < 5:
+            value = 2
+        elif value < 10:
+            value = 7
+        elif value < 25:
+            value = 17
+        elif value < 50:
+            value = 37
+        else:
+            value = 75
 
-            if np.isnan(value):
-                continue
-                
-            # smooth smoke classes
-            if value < 5: value = 2
-            elif value < 10: value = 7
-            elif value < 25: value = 17
-            elif value < 50: value = 37
-            else: value = 75
-          
+        poly = [
+            [lon, lat],
+            [lon + lon_step * STEP * 1.02, lat],
+            [lon + lon_step * STEP * 1.02, lat + lat_step * STEP * 1.02],
+            [lon, lat + lat_step * STEP * 1.02],
+            [lon, lat]
+        ]
 
-
-
-            lat = lat_min + r * lat_step
-            lon = lon_min + c * lon_step
-            
-            # skip outside region
-            if lat < LAT_MIN or lat > LAT_MAX:
-                continue
-            
-            if lon < LON_MIN or lon > LON_MAX:
-                continue
-
-            
-            poly = [
-                [lon, lat],
-                [lon + lon_step*STEP*1.02, lat],
-                [lon + lon_step*STEP*1.02, lat + lat_step*STEP*1.02],
-                [lon, lat + lat_step*STEP*1.02],
-                [lon, lat]
-            ]
-
-            features.append({
-                "type":"Feature",
-                "properties":{
-                    "pm25":float(value),
-                    "forecast":name
-                },
-                "geometry":{
-                    "type":"Polygon",
-                    "coordinates":[poly]
-                }
-            })
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "pm25": float(value),
+                "forecast": name,
+                "timestamp": forecast_time.isoformat()
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [poly]
+            }
+        })
 
     geojson = {
-        "type":"FeatureCollection",
-        "features":features
+        "type": "FeatureCollection",
+        "features": features
     }
 
     outfile = DATA_DIR / f"firesmoke_{name}.geojson"
 
-    with open(outfile,"w") as f:
-        json.dump(geojson,f)
+    with open(outfile, "w") as f:
+        json.dump(geojson, f)
 
-    
-    from datetime import datetime, timedelta
-    date = int(tflag[0, 0, 0])
-    time = int(tflag[0, 0, 1])
-    year = date // 1000
-    day = date % 1000
-    hour = time // 10000
-    minute = (time % 10000) // 100
-    second = time % 100
-    smoke_time = datetime(year, 1, 1) + timedelta(days=day-1)
-    smoke_time = smoke_time.replace(hour=hour, minute=minute, second=second)
-
-    
-    print("Saved:", outfile, "features:", len(features))
-    print("FireSmoke timestamp:", smoke_time)
+    print("Saved:", outfile, "features:", len(features), "time:", forecast_time)
