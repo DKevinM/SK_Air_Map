@@ -81,6 +81,63 @@ var smoke24 = loadSmokeLayer(
 "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_24h.geojson"
 );
 
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  const headers = lines[0].split(",");
+
+  return lines.slice(1).map(line => {
+    const values = line.split(",");
+    let obj = {};
+    headers.forEach((h, i) => obj[h.trim()] = values[i]);
+    return obj;
+  });
+}
+
+var purpleLayer = L.layerGroup().addTo(map);
+
+
+function loadPurpleAir() {
+
+  fetch("https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PA_sensors.csv?v=" + Date.now())
+    .then(r => r.text())
+    .then(text => {
+
+      const data = parseCSV(text);
+
+      console.log("PurpleAir sensors:", data.length);
+
+      purpleLayer.clearLayers();
+
+      data.forEach(d => {
+
+        const lat = Number(d.latitude);
+        const lon = Number(d.longitude);
+
+        if (isNaN(lat) || isNaN(lon)) return;
+
+        const marker = L.circleMarker([lat, lon], {
+          radius: 6,
+          color: "#6a00ff",
+          fillColor: "#b388ff",
+          fillOpacity: 0.8,
+          weight: 1
+        });
+
+        marker.bindPopup(
+          "<b>PurpleAir Sensor</b><br>" +
+          "Name: " + (d.name || "N/A") + "<br>" +
+          "Sensor ID: " + d.sensor_index + "<br>" +
+          "Last Seen: " + new Date(Number(d.last_seen)).toLocaleString()
+        );
+
+        marker.addTo(purpleLayer);
+
+      });
+
+    });
+}    
+
+    
 var overlays = {
   "Smoke Now": smoke0,
   "Smoke +6 hr": smoke6,
