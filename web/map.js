@@ -89,10 +89,11 @@ var overlays = {
   "PurpleAir Sensors": purpleLayer   
 };
 
-L.control.layers(null, overlays).addTo(map);
+setTimeout(() => {
+  L.control.layers(null, overlays).addTo(map);
+}, 500);
 
-
-    
+   
 
     
 // Saskatchewan air monitoring API
