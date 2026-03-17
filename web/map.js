@@ -127,7 +127,7 @@ function loadPurpleAir() {
           "<b>PurpleAir Sensor</b><br>" +
           "Name: " + (d.name || "N/A") + "<br>" +
           "Sensor ID: " + d.sensor_index + "<br>" +
-          "Last Seen: " + new Date(Number(d.last_seen)).toLocaleString()
+          "Last Seen: " + new Date(Number(d.last_seen)*1000).toLocaleString()
         );
 
         marker.addTo(purpleLayer);
