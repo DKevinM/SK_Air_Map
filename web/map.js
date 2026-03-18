@@ -163,11 +163,7 @@ function loadPM25Layer(url){
 }
 
 
-
-
-
-
-
+    
 
     
     
