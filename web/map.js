@@ -5,7 +5,6 @@ if (window.map) {
     window.map.remove();
 }
 
-    
 var map = L.map("map").setView([52.5,-106],6);
     
 window.map = map;
@@ -13,14 +12,11 @@ window.map = map;
 var stationLayer = L.layerGroup().addTo(map);
     
 
-
 L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
 attribution: "© OpenStreetMap"
 }).addTo(map);
-
-
 
 
 
@@ -68,85 +64,112 @@ function loadSmokeLayer(url){
 var smoke0 = loadSmokeLayer(
 "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_now.geojson"
 );
-
 var smoke6 = loadSmokeLayer(
 "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_6h.geojson"
 );
-
 var smoke12 = loadSmokeLayer(
 "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_12h.geojson"
 );
-
 var smoke24 = loadSmokeLayer(
 "https://dkevinm.github.io/SK_Air_Map/data/firesmoke_24h.geojson"
 );
 
-function parseCSV(text) {
-  const lines = text.trim().split("\n");
-  const headers = lines[0].split(",");
 
-  return lines.slice(1).map(line => {
-    const values = line.split(",");
-    let obj = {};
-    headers.forEach((h, i) => obj[h.trim()] = values[i]);
-    return obj;
-  });
-}
+var pm25Layer = loadPM25Layer(
+  "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
+);
 
-var purpleLayer = L.layerGroup().addTo(map);
-
-
-const PURPLE_URL = "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PA_sensors.geojson";
-
-async function loadPurpleAir() {
-  const resp = await fetch(PURPLE_URL);
-  if (!resp.ok) throw new Error(`Failed to load PurpleAir GeoJSON: ${resp.status}`);
-
-  const purpleFC = await resp.json();
-
-  const purpleLayer = L.geoJSON(purpleFC, {
-    pointToLayer: function (feature, latlng) {
-      return L.circleMarker(latlng, {
-        radius: 5,
-        fillColor: "#800080",
-        color: "#ffffff",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-      });
-    },
-    onEachFeature: function (feature, layer) {
-      const p = feature.properties || {};
-
-      layer.bindPopup(`
-        <b>${p.name || "PurpleAir Sensor"}</b><br>
-        Sensor Index: ${p.sensor_index ?? "NA"}<br>
-        PM2.5: ${p.pm25 ?? "NA"}<br>
-        Last Seen: ${p.last_seen ?? "NA"}
-      `);
-    }
-  });
-
-  purpleLayer.addTo(map);
-}
-
-
-
-    
+   
 var overlays = {
   "Smoke Now": smoke0,
   "Smoke +6 hr": smoke6,
   "Smoke +12 hr": smoke12,
   "Smoke +24 hr": smoke24,
-  "PurpleAir Sensors": purpleLayer   
+  "PM2.5 Grid": pm25Layer
 };
 
 setTimeout(() => {
   L.control.layers(null, overlays).addTo(map);
 }, 500);
 
-   
 
+
+
+    
+
+function getPMColor(pm){
+
+  if(pm == null || isNaN(pm)) return "#808080";
+
+  if (pm > 100) return "#640100";
+  if (pm > 90)  return "#9a0100";
+  if (pm > 80)  return "#cc0001";
+  if (pm > 70)  return "#fe0002";
+  if (pm > 60)  return "#fd6866";
+  if (pm > 50)  return "#ff9835";
+  if (pm > 40)  return "#ffcb00";
+  if (pm > 30)  return "#fffe03";
+  if (pm > 20)  return "#016797";
+  if (pm > 10)  return "#0099cb";
+  if (pm > 0)   return "#01cbff";
+
+  return "#D3D3D3";
+}
+
+function pm25Style(feature){
+
+  const v = feature.properties.pm25;
+
+  return {
+    fillColor: getPMColor(v),
+    weight: 0.2,
+    color: "#333",
+    fillOpacity: 0.7
+  };
+}
+
+function loadPM25Layer(url){
+
+  var layer = L.layerGroup();
+
+  fetch(url + "?v=" + Date.now())
+  .then(r => r.json())
+  .then(data => {
+
+    L.geoJSON(data,{
+      style: pm25Style,
+      onEachFeature:function(feature,layer){
+
+        const p = feature.properties || {};
+
+        layer.bindTooltip(
+          "PM2.5: " + (p.pm25 ?? "N/A"),
+          {sticky: true}
+        );
+
+        layer.bindPopup(`
+          <b>PM2.5 Grid Cell</b><br>
+          PM2.5: ${p.pm25 ?? "N/A"} µg/m³<br>
+          ${p.sensor_count ? "Sensors: " + p.sensor_count + "<br>" : ""}
+          ${p.timestamp ? "Updated: " + new Date(p.timestamp).toLocaleString() : ""}
+        `);
+
+      }
+    }).addTo(layer);
+
+  });
+
+  return layer;
+}
+
+
+
+
+
+
+
+
+    
     
 // Saskatchewan air monitoring API
 var api =
@@ -182,60 +205,33 @@ function round1(v){
 }    
 
 
-function parseCSV(text) {
-  const lines = text.trim().split("\n");
-  const headers = lines[0].split(",");
 
-  return lines.slice(1).map(line => {
-    const values = line.split(",");
-    let obj = {};
-    headers.forEach((h, i) => obj[h.trim()] = values[i]);
-    return obj;
-  });
-}
+   
 
-var purpleLayer = L.layerGroup().addTo(map);
+function loadPM25Layer(url){
 
+  var layer = L.layerGroup();
 
-function loadPurpleAir() {
+  fetch(url + "?v=" + Date.now())
+  .then(r => r.json())
+  .then(data => {
 
-  fetch("https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PA_sensors.csv?v=" + Date.now())
-    .then(r => r.text())
-    .then(text => {
+    L.geoJSON(data,{
+      style: smokeStyle,   
+      onEachFeature:function(feature,layer){
 
-      const data = parseCSV(text);
+        var v = feature.properties.pm25;
 
-      console.log("PurpleAir sensors:", data.length);
-
-      purpleLayer.clearLayers();
-
-      data.forEach(d => {
-
-        const lat = Number(d.latitude);
-        const lon = Number(d.longitude);
-
-        if (isNaN(lat) || isNaN(lon)) return;
-
-        const marker = L.circleMarker([lat, lon], {
-          radius: 6,
-          color: "#6a00ff",
-          fillColor: "#b388ff",
-          fillOpacity: 0.8,
-          weight: 1
-        });
-
-        marker.bindPopup(
-          "<b>PurpleAir Sensor</b><br>" +
-          "Name: " + (d.name || "N/A") + "<br>" +
-          "Sensor ID: " + d.sensor_index + "<br>" +
-          "Last Seen: " + new Date(Number(d.last_seen)).toLocaleString()
+        layer.bindTooltip(
+          "PM2.5: " + (v ?? "N/A") + " µg/m³"
         );
 
-        marker.addTo(purpleLayer);
+      }
+    }).addTo(layer);
 
-      });
+  });
 
-    });
+  return layer;
 }
 
     
@@ -342,7 +338,7 @@ fetch(api)
     }
 
   }).addTo(stationLayer);
-    loadPurpleAir();
+
 
 });
 }
