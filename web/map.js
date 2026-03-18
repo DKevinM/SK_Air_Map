@@ -88,7 +88,7 @@ var overlays = {
   "PM2.5 Sensors": pm25Layer
 };
 
-setTimeout(() => {
+
 L.control.layers(null, overlays, { position: "topright" }).addTo(map);
 
 
@@ -327,5 +327,4 @@ fetch(api)
 
 });
 }
-}, 100);
 });
