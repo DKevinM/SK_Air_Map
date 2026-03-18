@@ -96,46 +96,41 @@ function parseCSV(text) {
 var purpleLayer = L.layerGroup().addTo(map);
 
 
-function loadPurpleAir() {
+const PURPLE_URL = "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PA_sensors.geojson";
 
-  fetch("https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PA_sensors.csv?v=" + Date.now())
-    .then(r => r.text())
-    .then(text => {
+async function loadPurpleAir() {
+  const resp = await fetch(PURPLE_URL);
+  if (!resp.ok) throw new Error(`Failed to load PurpleAir GeoJSON: ${resp.status}`);
 
-      const data = parseCSV(text);
+  const purpleFC = await resp.json();
 
-      console.log("PurpleAir sensors:", data.length);
-
-      purpleLayer.clearLayers();
-
-      data.forEach(d => {
-
-        const lat = Number(d.latitude);
-        const lon = Number(d.longitude);
-
-        if (isNaN(lat) || isNaN(lon)) return;
-
-        const marker = L.circleMarker([lat, lon], {
-          radius: 6,
-          color: "#6a00ff",
-          fillColor: "#b388ff",
-          fillOpacity: 0.8,
-          weight: 1
-        });
-
-        marker.bindPopup(
-          "<b>PurpleAir Sensor</b><br>" +
-          "Name: " + (d.name || "N/A") + "<br>" +
-          "Sensor ID: " + d.sensor_index + "<br>" +
-          "Last Seen: " + new Date(Number(d.last_seen)*1000).toLocaleString()
-        );
-
-        marker.addTo(purpleLayer);
-
+  const purpleLayer = L.geoJSON(purpleFC, {
+    pointToLayer: function (feature, latlng) {
+      return L.circleMarker(latlng, {
+        radius: 5,
+        fillColor: "#800080",
+        color: "#ffffff",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
       });
+    },
+    onEachFeature: function (feature, layer) {
+      const p = feature.properties || {};
 
-    });
-}    
+      layer.bindPopup(`
+        <b>${p.name || "PurpleAir Sensor"}</b><br>
+        Sensor Index: ${p.sensor_index ?? "NA"}<br>
+        PM2.5: ${p.pm25 ?? "NA"}<br>
+        Last Seen: ${p.last_seen ?? "NA"}
+      `);
+    }
+  });
+
+  purpleLayer.addTo(map);
+}
+
+
 
     
 var overlays = {
