@@ -13,10 +13,10 @@ DATA_DIR = Path("data")
 DATA_DIR.mkdir(exist_ok=True)
 
 # region of interest (Prairies / Saskatchewan focus)
-LAT_MIN = 48
-LAT_MAX = 60
-LON_MIN = -115
-LON_MAX = -100
+LAT_MIN = 42   # down into northern US
+LAT_MAX = 65   # mid NWT
+LON_MIN = -130 # BC coast-ish
+LON_MAX = -90  # Manitoba east
 
 url = "https://services.firesmoke.ca/forecasts/current/dispersion.nc"
 nc_file = DATA_DIR / "firesmoke.nc"
