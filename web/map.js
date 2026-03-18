@@ -75,9 +75,6 @@ var smoke24 = loadSmokeLayer(
 );
 
 
-var pm25Layer = loadPM25Layer(
-  "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
-);
 
    
 var overlays = {
@@ -89,8 +86,7 @@ var overlays = {
 };
 
 setTimeout(() => {
-  L.control.layers(null, overlays).addTo(map);
-}, 500);
+L.control.layers(null, overlays, { position: "topright" }).addTo(map);
 
 
 
@@ -128,6 +124,7 @@ function pm25Style(feature){
   };
 }
 
+
 function loadPM25Layer(url){
 
   var layer = L.layerGroup();
@@ -136,25 +133,40 @@ function loadPM25Layer(url){
   .then(r => r.json())
   .then(data => {
 
+    console.log("PM25 features:", data.features?.length);
+
     L.geoJSON(data,{
-      style: pm25Style,
+
+      pointToLayer: function(feature, latlng){
+
+        const p = feature.properties || {};
+        const pm = p.pm25;
+
+        return L.circleMarker(latlng, {
+          radius: 6,
+          fillColor: getPMColor(pm),
+          color: "#333",
+          weight: 1,
+          fillOpacity: 0.8
+        });
+
+      },
+
       onEachFeature:function(feature,layer){
 
         const p = feature.properties || {};
 
-        layer.bindTooltip(
-          "PM2.5: " + (p.pm25 ?? "N/A"),
-          {sticky: true}
-        );
-
         layer.bindPopup(`
-          <b>PM2.5 Grid Cell</b><br>
+          <b>${p.name ?? "Sensor"}</b><br>
           PM2.5: ${p.pm25 ?? "N/A"} µg/m³<br>
-          ${p.sensor_count ? "Sensors: " + p.sensor_count + "<br>" : ""}
-          ${p.timestamp ? "Updated: " + new Date(p.timestamp).toLocaleString() : ""}
+          Raw: ${p.pm_raw ?? "N/A"}<br>
+          Humidity: ${p.humidity ?? "N/A"}%<br>
+          Method: ${p.method ?? "N/A"}<br>
+          Last Seen: ${p.last_seen ? new Date(p.last_seen).toLocaleString() : "N/A"}
         `);
 
       }
+
     }).addTo(layer);
 
   });
@@ -163,6 +175,9 @@ function loadPM25Layer(url){
 }
 
 
+var pm25Layer = loadPM25Layer(
+  "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
+);
     
 
     
@@ -203,32 +218,6 @@ function round1(v){
 
 
    
-
-function loadPM25Layer(url){
-
-  var layer = L.layerGroup();
-
-  fetch(url + "?v=" + Date.now())
-  .then(r => r.json())
-  .then(data => {
-
-    L.geoJSON(data,{
-      style: smokeStyle,   
-      onEachFeature:function(feature,layer){
-
-        var v = feature.properties.pm25;
-
-        layer.bindTooltip(
-          "PM2.5: " + (v ?? "N/A") + " µg/m³"
-        );
-
-      }
-    }).addTo(layer);
-
-  });
-
-  return layer;
-}
 
     
     
