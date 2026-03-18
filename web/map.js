@@ -76,13 +76,16 @@ var smoke24 = loadSmokeLayer(
 
 
 
+var pm25Layer = loadPM25Layer(
+  "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
+);
    
 var overlays = {
   "Smoke Now": smoke0,
   "Smoke +6 hr": smoke6,
   "Smoke +12 hr": smoke12,
   "Smoke +24 hr": smoke24,
-  "PM2.5 Grid": pm25Layer
+  "PM2.5 Sensors": pm25Layer
 };
 
 setTimeout(() => {
@@ -175,9 +178,6 @@ function loadPM25Layer(url){
 }
 
 
-var pm25Layer = loadPM25Layer(
-  "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
-);
     
 
     
@@ -327,4 +327,5 @@ fetch(api)
 
 });
 }
+}, 100);
 });
