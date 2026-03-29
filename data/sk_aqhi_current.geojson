@@ -1,4 +1,155 @@
 {
   "type": "FeatureCollection",
-  "features": []
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -104.617125744561,
+          50.4502077461615
+        ]
+      },
+      "properties": {
+        "station": "Regina",
+        "PM25": 5.5,
+        "NO2": 3.3,
+        "O3": 37.5,
+        "WS": 15.6,
+        "WD": 346.7,
+        "TEMP": -3.3,
+        "RH": 66.2,
+        "PM25_3hr": 5.5,
+        "NO2_3hr": 3.3,
+        "O3_3hr": 37.5,
+        "AQHI": 2,
+        "updated": "2026-03-29T19:00:00+00:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -106.662942708646,
+          52.1361376913645
+        ]
+      },
+      "properties": {
+        "station": "Saskatoon",
+        "PM25": 5.7,
+        "NO2": 2.1,
+        "O3": 33.7,
+        "WS": 10.1,
+        "WD": 345.4,
+        "TEMP": -4.8,
+        "RH": 52.7,
+        "PM25_3hr": 5.7,
+        "NO2_3hr": 2.1,
+        "O3_3hr": 33.7,
+        "AQHI": 2,
+        "updated": "2026-03-29T19:00:00+00:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -105.751586774025,
+          53.2019378757967
+        ]
+      },
+      "properties": {
+        "station": "Prince Albert",
+        "PM25": 4.6,
+        "NO2": 7.4,
+        "O3": 31.7,
+        "WS": 5.9,
+        "WD": 309.7,
+        "TEMP": -3.2,
+        "RH": 43.7,
+        "PM25_3hr": 4.6,
+        "NO2_3hr": 7.4,
+        "O3_3hr": 31.7,
+        "AQHI": 2,
+        "updated": "2026-03-29T19:00:00+00:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -107.816680514048,
+          50.2858504122844
+        ]
+      },
+      "properties": {
+        "station": "Swift Current",
+        "PM25": 5.9,
+        "NO2": 3.8,
+        "O3": 34.6,
+        "WS": 10.1,
+        "WD": 57.7,
+        "TEMP": -3.4,
+        "RH": 81.7,
+        "PM25_3hr": 5.9,
+        "NO2_3hr": 3.8,
+        "O3_3hr": 34.6,
+        "AQHI": 2,
+        "updated": "2026-03-29T19:00:00+00:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -108.40387034522,
+          55.8347917730994
+        ]
+      },
+      "properties": {
+        "station": "Buffalo Narrows",
+        "PM25": 3.0,
+        "NO2": 0.8,
+        "O3": 40.8,
+        "WS": 4.3,
+        "WD": 174.1,
+        "TEMP": -9.0,
+        "RH": 55.3,
+        "PM25_3hr": 3.0,
+        "NO2_3hr": 0.8,
+        "O3_3hr": 40.8,
+        "AQHI": 2,
+        "updated": "2026-03-29T19:00:00+00:00"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -102.985002018981,
+          49.1323647672702
+        ]
+      },
+      "properties": {
+        "station": "Estevan",
+        "PM25": 11.6,
+        "NO2": 3.0,
+        "O3": 28.9,
+        "WS": 12.7,
+        "WD": 319.2,
+        "TEMP": 4.6,
+        "RH": 58.9,
+        "PM25_3hr": 11.6,
+        "NO2_3hr": 3.0,
+        "O3_3hr": 28.9,
+        "AQHI": 2,
+        "updated": "2026-03-29T19:00:00+00:00"
+      }
+    }
+  ]
 }
