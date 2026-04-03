@@ -48,7 +48,7 @@ print("FireSmoke timestamp:", smoke_time)
 pm = ds["PM25"]
 
 # Downsample step
-STEP = 2
+STEP = 3
 
 forecast_hours = {
     "now":0,
@@ -89,6 +89,10 @@ for name, t in forecast_hours.items():
     forecast_time = smoke_time + timedelta(hours=t)
     print("Processing:", name, forecast_time)
 
+    if t >= pm.shape[0]:
+        print(f"Skipping {name} — not available")
+        continue
+    
     grid = pm.isel(TSTEP=t, LAY=0).values
     grid = np.flipud(grid)
 
@@ -107,17 +111,17 @@ for name, t in forecast_hours.items():
         lat = lat_ds[r_idx]
         lon = lon_ds[c_idx]
 
-        if value < 5:
-            value = 2
-        elif value < 10:
-            value = 7
-        elif value < 25:
-            value = 17
-        elif value < 50:
-            value = 37
-        else:
-            value = 75
+        
+        raw_val = float(grid_ds[r_idx, c_idx])
+        
+        
+        "properties": {
+            "pm25": raw_val,
+            "forecast": name,
+            "timestamp": forecast_time.isoformat()
+        }    
 
+            
         poly = [
             [lon, lat],
             [lon + lon_step * STEP * 1.02, lat],
