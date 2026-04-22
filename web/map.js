@@ -61,18 +61,13 @@ function loadSmokeLayer(url){
   return layer;
 }
 
-var smoke0 = loadSmokeLayer(
-"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_now.geojson"
-);
-var smoke6 = loadSmokeLayer(
-"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_6h.geojson"
-);
-var smoke12 = loadSmokeLayer(
-"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_12h.geojson"
-);
-var smoke24 = loadSmokeLayer(
-"https://dkevinm.github.io/SK_Air_Map/data/firesmoke_24h.geojson"
-);
+    
+const FIRESMOKE_BASE = "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/data/output";
+
+var smoke0  = loadSmokeLayer(`${FIRESMOKE_BASE}/firesmoke_now.geojson`);
+var smoke6  = loadSmokeLayer(`${FIRESMOKE_BASE}/firesmoke_6h.geojson`);
+var smoke12 = loadSmokeLayer(`${FIRESMOKE_BASE}/firesmoke_12h.geojson`);
+var smoke24 = loadSmokeLayer(`${FIRESMOKE_BASE}/firesmoke_24h.geojson`);    
 
 
 
