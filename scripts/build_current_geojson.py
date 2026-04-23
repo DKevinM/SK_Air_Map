@@ -236,6 +236,11 @@ for station, s in stations.items():
     df_station["datetime"] = pd.to_datetime(df_station["datetime"], errors="coerce")
     df_station = df_station.sort_values("datetime").reset_index(drop=True) 
 
+    df_station = df_station.set_index("datetime").resample("1H").mean()
+    # fill small gaps
+    df_station = df_station.interpolate(limit=3)
+    df_station = df_station.reset_index()    
+
     for lag in [1, 2, 3, 6, 12]:
         df_station[f"PM25_lag{lag}"] = df_station["PM25"].shift(lag)
         df_station[f"O3_lag{lag}"]   = df_station["O3"].shift(lag)
