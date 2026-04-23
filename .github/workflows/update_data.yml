@@ -1,45 +1,41 @@
-name: Update SK Air Data
-
-permissions:
-  contents: write
+name: Build Air Data
 
 on:
   schedule:
-    - cron: '*/30 * * * *'   # every 30 minutes
+    - cron: '*/20 * * * *'   # every 20 minutes
   workflow_dispatch:
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install packages
+      - name: Install dependencies
         run: |
-          pip install \
-            requests \
-            pandas \
-            numpy \
-            scipy \
-            shapely \
-            geopandas \
-            scikit-learn
+          pip install pandas numpy requests
 
-      - name: Run script
+      # 🔹 STEP 1: MAP DATA (always runs)
+      - name: Build current map
+        run: python scripts/build_current_map.py
+
+      # 🔹 STEP 2: FORECAST INPUT (allowed to fail without breaking pipeline)
+      - name: Build forecast input
+        run: python scripts/build_forecast_input.py
+        continue-on-error: true
+
+      # 🔹 STEP 3: Commit outputs
+      - name: Commit & push outputs
         run: |
-          python scripts/build_current_geojson.py
-
-      - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v6
-        with:
-          commit_message: Update SK AQHI data
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data/
+          git commit -m "update air data $(date -u)" || echo "No changes"
+          git push
