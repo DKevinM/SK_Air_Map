@@ -14,7 +14,7 @@ now_utc = datetime.now(timezone.utc)
 aqhi_cutoff = now_utc - timedelta(hours=3)
 aqhi_cutoff_ms = aqhi_cutoff.timestamp() * 1000
 
-history_cutoff = now_utc - timedelta(hours=13)
+history_cutoff = now_utc - timedelta(hours=24)
 history_cutoff_ms = history_cutoff.timestamp() * 1000
 
 
@@ -75,7 +75,7 @@ def calc_aqhi(PM25, NO2, O3):
 
 stations = {}
 
-# collect station data within last 13 hours
+# collect station data within last 24 hours
 for f in data["features"]:
 
     p = f["properties"]
@@ -245,7 +245,7 @@ for station, s in stations.items():
             "lon": float(s["lon"])
         })
 
-    if len(rows) < 13:
+    if len(rows) < 24:
         continue
     
     df_station = pd.DataFrame(rows)
