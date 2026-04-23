@@ -8,13 +8,13 @@ OUTPUT = Path("data/current_map.geojson")
 
 now_utc = datetime.now(timezone.utc)
 cutoff = now_utc - timedelta(hours=3)
-cutoff_ms = int(cutoff.timestamp() * 1000)
-cutoff_str = cutoff.strftime("%Y-%m-%d %H:%M:%S")
+start_ms = int(cutoff.timestamp() * 1000)
+end_ms = int(now_utc.timestamp() * 1000)
 
 r = requests.get(
     API,
     params={
-        "where": f"DATETIME >= {cutoff_str}",
+        "time": f"{start_ms},{end_ms}", 
         "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
         "orderByFields": "COMMUNITY ASC, DATETIME DESC",
         "f": "geojson",
@@ -22,7 +22,17 @@ r = requests.get(
     }
 )
 
+print("Status:", r.status_code)
+
 data = r.json()
+
+if "features" not in data:
+    print("API RESPONSE ERROR:")
+    print(data)
+    raise SystemExit("No features returned")
+
+
+
 
 stations = {}
 
