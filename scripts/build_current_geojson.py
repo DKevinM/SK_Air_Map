@@ -127,15 +127,15 @@ for station, s in stations.items():
     latest_idx = None
     
     for i in sorted(range(len(s["times"])), key=lambda x: s["times"][x], reverse=True):
-            if (
-                s["PM25"][i] is not None and s["PM25"][i] > -999 and
-                s["NO2"][i] is not None and s["NO2"][i] > -999 and
-                s["O3"][i] is not None and s["O3"][i] > -999 and
-                s["WS"][i] is not None and s["WS"][i] > -999 and
-                s["WD"][i] is not None and s["WD"][i] > -999 and
-                s["TEMP"][i] is not None and s["TEMP"][i] > -999 and
-                s["RH"][i] is not None and s["RH"][i] > -999
-            ):
+        if (
+            s["PM25"][i] is not None and s["PM25"][i] > -999 and
+            s["NO2"][i] is not None and s["NO2"][i] > -999 and
+            s["O3"][i] is not None and s["O3"][i] > -999 and
+            s["WS"][i] is not None and s["WS"][i] > -999 and
+            s["WD"][i] is not None and s["WD"][i] > -999 and
+            s["TEMP"][i] is not None and s["TEMP"][i] > -999 and
+            s["RH"][i] is not None and s["RH"][i] > -999
+        ):
             latest_idx = i
             break
     
