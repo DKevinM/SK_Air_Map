@@ -249,14 +249,14 @@ for station, s in stations.items():
     latest = df_station.dropna(subset=["PM25", "NO2", "O3"]).iloc[-1].copy()
 
     needed = [
-        "PM25_lag1","PM25_lag2","PM25_lag3","PM25_lag6","PM25_lag12",
-        "O3_lag1","O3_lag2","O3_lag3","O3_lag6","O3_lag12",
-        "NO2_lag1","NO2_lag2","NO2_lag3","NO2_lag6","NO2_lag12"
+        "PM25_lag1","PM25_lag2","PM25_lag3",
+        "O3_lag1","O3_lag2","O3_lag3",
+        "NO2_lag1","NO2_lag2","NO2_lag3"
     ]
 
     latest[needed] = latest[needed].fillna(method="ffill").fillna(method="bfill")
     
-    if latest[needed].isna().any():
+    if latest[needed].isna().sum() > 3:
         continue
 
     latest_rows.append(latest)
