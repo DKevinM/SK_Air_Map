@@ -229,7 +229,8 @@ for station, s in stations.items():
             "lon": float(s["lon"])
         })
 
-    if len(rows) < 24:
+    print(f"{station}: valid rows =", len(rows))
+    if len(rows) < 8:
         continue
     
     df_station = pd.DataFrame(rows)
@@ -238,15 +239,18 @@ for station, s in stations.items():
 
     df_station = df_station.set_index("datetime").resample("1H").mean()
     # fill small gaps
-    df_station = df_station.interpolate(limit=3)
+    df_station = df_station.interpolate(limit=6)
     df_station = df_station.reset_index()    
 
-    for lag in [1, 2, 3, 6, 12]:
+    for lag in [1, 2, 3]:
         df_station[f"PM25_lag{lag}"] = df_station["PM25"].shift(lag)
         df_station[f"O3_lag{lag}"]   = df_station["O3"].shift(lag)
         df_station[f"NO2_lag{lag}"]  = df_station["NO2"].shift(lag)
 
-    latest = df_station.dropna(subset=["PM25", "NO2", "O3"]).iloc[-1].copy()
+    valid_df = df_station.dropna(subset=["PM25", "NO2", "O3"])    
+    if valid_df.empty:
+        continue    
+    latest = valid_df.iloc[-1].copy()
 
     needed = [
         "PM25_lag1","PM25_lag2","PM25_lag3",
@@ -256,7 +260,7 @@ for station, s in stations.items():
 
     latest[needed] = latest[needed].fillna(method="ffill").fillna(method="bfill")
     
-    if latest[needed].isna().sum() > 3:
+    if latest[needed].isna().sum() > 5:
         continue
 
     latest_rows.append(latest)
