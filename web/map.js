@@ -61,6 +61,41 @@ function loadSmokeLayer(url){
   return layer;
 }
 
+
+
+function aqhiGridStyle(feature) {
+  var v = feature.properties.aqhi ?? feature.properties.AQHI ?? null;
+
+  return {
+    fillColor: aqhiColor(v),
+    weight: 0.3,
+    color: "#666",
+    fillOpacity: 0.35,
+    interactive: false
+  };
+}
+
+function loadAqhiGridLayer(url) {
+  var layer = L.layerGroup();
+
+  fetch(url + "?v=" + Date.now())
+    .then(r => r.json())
+    .then(data => {
+      L.geoJSON(data, {
+        style: aqhiGridStyle,
+        onEachFeature: function(feature, lyr) {
+          var v = feature.properties.aqhi ?? feature.properties.AQHI ?? "N/A";
+          lyr.bindTooltip("AQHI Grid: " + v);
+        }
+      }).addTo(layer);
+    })
+    .catch(err => console.error("AQHI grid load failed:", err));
+
+  return layer;
+}
+
+    
+
     
 const FIRESMOKE_BASE = "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/data/output";
 
@@ -74,8 +109,13 @@ var smoke24 = loadSmokeLayer(`${FIRESMOKE_BASE}/firesmoke_24h.geojson`);
 var pm25Layer = loadPM25Layer(
   "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
 );
-   
+
+var aqhiGridLayer = loadAqhiGridLayer("data/sk_aqhi_grid.geojson");
+
+    
 var overlays = {
+  "AQHI Stations": stationLayer,
+  "AQHI Grid": aqhiGridLayer,
   "Smoke Now": smoke0,
   "Smoke +6 hr": smoke6,
   "Smoke +12 hr": smoke12,
@@ -83,8 +123,7 @@ var overlays = {
   "PM2.5 Sensors": pm25Layer
 };
 
-
-L.control.layers(null, overlays, { position: "topright" }).addTo(map);
+L.control.layers(null, overlays, { position: "topright", collapsed: false }).addTo(map);
 
 
 
@@ -217,23 +256,39 @@ function round1(v){
     
     
 var aqhiLookup = {};
-fetch("data/sk_aqhi_current.geojson")
-.then(r => r.json())
-.then(data => {
-  data.features.forEach(f => {
-    var p = f.properties;
+var forecastLookup = {};
+    Promise.all([
+      fetch("data/sk_aqhi_current.geojson").then(r => r.json()),
+      fetch("data/sk_forecast.geojson").then(r => r.json())
+    ]).then(([currentData, forecastData]) => {
+    
+      currentData.features.forEach(f => {
+        var p = f.properties;
+        aqhiLookup[p.station.toUpperCase()] = {
+          aqhi: Number(p.AQHI),
+          time: p.updated
+        };
+      });
+    
+      forecastData.features.forEach(f => {
+        var p = f.properties;
+        forecastLookup[p.station.toUpperCase()] = {
+          aqhi_fc: p.aqhi_forecast ?? p.AQHI_forecast ?? p.forecast_aqhi ?? p.AQHI ?? null,
+          pm25_fc: p.pm25_forecast ?? p.PM2_5 ?? null,
+          time_fc: p.forecast_time ?? p.updated ?? null
+        };
+      });
+    
+      console.log("AQHI lookup table:", aqhiLookup);
+      console.log("Forecast lookup table:", forecastLookup);
+    
+      loadStations();
+    
+    }).catch(err => {
+      console.error("Failed loading AQHI/forecast files:", err);
+      loadStations();
+    });
 
-    aqhiLookup[p.station.toUpperCase()] = {
-      aqhi: Number(p.AQHI),
-      time: p.updated
-    };
-
-  });
-
-  console.log("AQHI lookup table:", aqhiLookup);
-
-  loadStations();
-});
 
     
 
@@ -265,51 +320,57 @@ fetch(api)
 
   L.geoJSON(clean, {
 
-    pointToLayer: function(feature,latlng){
-
+    pointToLayer: function(feature, latlng) {
+    
       var p = feature.properties;
-
       var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
-
       var aqhi = aqhiData ? aqhiData.aqhi : null;
-      var aqhiTime = aqhiData ? new Date(aqhiData.time).toLocaleString() : "N/A";
-
       var color = aqhiColor(aqhi);
-        
+    
       var icon = L.divIcon({
         className: "aqhi-marker",
         html:
-          "<div style='background:"+color+"'>"+
-          (aqhi ?? "")+
+          "<div style='background:" + color + "'>" +
+          (aqhi ?? "") +
           "</div>",
-        iconSize: [38,38]
+        iconSize: [38, 38]
       });
-        
-      console.log(p.COMMUNITY, aqhiLookup[p.COMMUNITY.toUpperCase()]);  
-      return L.marker(latlng,{icon:icon});
-
+    
+      console.log(p.COMMUNITY, aqhiLookup[p.COMMUNITY.toUpperCase()]);
+      return L.marker(latlng, { icon: icon });
+    
     },
 
     onEachFeature:function(feature,layer){
 
-      var p = feature.properties;
-
-      var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
-
-      var aqhi = aqhiData ? aqhiData.aqhi : null;
-      var aqhiTime = aqhiData ? new Date(aqhiData.time).toLocaleString() : "N/A";
-
-      var time = new Date(p.DATETIME).toLocaleString();
+    var p = feature.properties;
+    
+    var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
+    var fcData = forecastLookup[p.COMMUNITY.toUpperCase()];
+    
+    var aqhi = aqhiData ? aqhiData.aqhi : null;
+    var aqhiTime = aqhiData && aqhiData.time ? new Date(aqhiData.time).toLocaleString() : "N/A";
+    
+    var aqhiFc = fcData ? fcData.aqhi_fc : null;
+    var pm25Fc = fcData ? fcData.pm25_fc : null;
+    var fcTime = fcData && fcData.time_fc ? new Date(fcData.time_fc).toLocaleString() : "N/A";
+    
+    var time = p.DATETIME ? new Date(p.DATETIME).toLocaleString() : "N/A";
 
       layer.bindPopup(
         "<b>"+p.COMMUNITY+"</b><br>"+
-        "AQHI (3hr): "+(aqhi ?? "N/A")+"<br>"+
+        "AQHI (current 3hr): "+(aqhi ?? "N/A")+"<br>"+
         "<hr>"+
         "PM2.5: "+round1(p.PM2_5)+" µg/m³<br>"+
         "NO₂: "+round1(p.NO2)+" ppb<br>"+
         "O₃: "+round1(p.O3)+" ppb<br>"+
         "Wind: "+round1(p.WS)+" km/h<br>"+
         "Temp: "+round1(p.TEMP)+" °C<br>"+
+        "<hr>"+
+        "<b>Forecast</b><br>"+
+        "AQHI forecast: "+(aqhiFc ?? "N/A")+"<br>"+
+        "PM2.5 forecast: "+round1(pm25Fc)+" µg/m³<br>"+
+        "Forecast time: "+fcTime+"<br>"+
         "<hr>"+
         "Station time: "+time+"<br>"+
         "AQHI updated: "+aqhiTime
