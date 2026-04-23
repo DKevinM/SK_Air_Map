@@ -20,13 +20,16 @@ history_cutoff_ms = history_cutoff.timestamp() * 1000
 
 print("WHERE CLAUSE:", "DATETIME >= {}".format(int(history_cutoff_ms)))
 # pull station data
-r = requests.get(API, params={
-    "where": "DATETIME >= {}".format(int(round(history_cutoff_ms)),
-    "outFields": "COMMUNITY,PM2_5,NO2,O3,WS,WD,TEMP,RH,DATETIME",
-    "orderByFields": "COMMUNITY ASC, DATETIME ASC",
-    "f": "geojson",
-    "resultRecordCount": 5000
-})
+r = requests.get(
+    API,
+    params={
+        "where": "DATETIME >= {}".format(int(round(history_cutoff_ms))),
+        "outFields": "COMMUNITY,PM2_5,NO2,O3,WS,WD,TEMP,RH,DATETIME",
+        "orderByFields": "COMMUNITY ASC, DATETIME ASC",
+        "f": "geojson",
+        "resultRecordCount": 5000
+    }
+)
 
 data = r.json()
 
