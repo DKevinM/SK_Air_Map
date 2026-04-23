@@ -7,17 +7,25 @@ from datetime import datetime, timedelta, timezone
 API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly_Ambient_Air_Quality/FeatureServer/0/query"
 OUTPUT = Path("data/sk_aqhi_current.geojson")
 
+
 # determine 3-hour cutoff
-cutoff = datetime.now(timezone.utc) - timedelta(hours=3)
-cutoff_ms = cutoff.timestamp() * 1000
+now_utc = datetime.now(timezone.utc)
+
+aqhi_cutoff = now_utc - timedelta(hours=3)
+aqhi_cutoff_ms = aqhi_cutoff.timestamp() * 1000
+
+history_cutoff = now_utc - timedelta(hours=13)
+history_cutoff_ms = history_cutoff.timestamp() * 1000
+
 
 
 # pull station data
 r = requests.get(API, params={
-    "where": "1=1",
+    "where": "DATETIME >= {}".format(int(history_cutoff_ms)),
     "outFields": "COMMUNITY,PM2_5,NO2,O3,WS,WD,TEMP,RH,DATETIME",
+    "orderByFields": "COMMUNITY ASC, DATETIME ASC",
     "f": "geojson",
-    "resultRecordCount": 1000
+    "resultRecordCount": 5000
 })
 
 data = r.json()
@@ -60,25 +68,30 @@ def calc_aqhi(PM25, NO2, O3):
 
 stations = {}
 
-# collect station data within last 3 hours
+# collect station data within last 13 hours
 for f in data["features"]:
 
     p = f["properties"]
 
-    if p["DATETIME"] < cutoff_ms:
+    if p["DATETIME"] < history_cutoff_ms:
         continue
 
     station = p["COMMUNITY"]
 
+    
+    lon, lat = f["geometry"]["coordinates"]
+    
     stations.setdefault(station, {
         "geometry": f["geometry"],
+        "lon": lon,
+        "lat": lat,
         "PM25": [],
         "NO2": [],
         "O3": [],
         "WS": [],
         "WD": [],
         "TEMP": [],
-        "RH": [],        
+        "RH": [],
         "times": []
     })
 
@@ -96,14 +109,11 @@ features = []
 
 for station, s in stations.items():
 
-    PM25 = [v for v in s["PM25"] if v is not None and v > -999]
-    NO2  = [v for v in s["NO2"] if v is not None and v > -999]
-    O3   = [v for v in s["O3"] if v is not None and v > -999]
+    recent_idx = [i for i, t in enumerate(s["times"]) if t is not None and t >= aqhi_cutoff_ms]
     
-    WS   = [v for v in s["WS"] if v is not None and v > -999]
-    WD   = [v for v in s["WD"] if v is not None and v > -999]
-    TEMP = [v for v in s["TEMP"] if v is not None and v > -999]
-    RH   = [v for v in s["RH"] if v is not None and v > -999]
+    PM25 = [s["PM25"][i] for i in recent_idx if s["PM25"][i] is not None and s["PM25"][i] > -999]
+    NO2  = [s["NO2"][i]  for i in recent_idx if s["NO2"][i]  is not None and s["NO2"][i]  > -999]
+    O3   = [s["O3"][i]   for i in recent_idx if s["O3"][i]   is not None and s["O3"][i]   > -999]
     
     if not PM25 or not NO2 or not O3:
         continue
@@ -117,11 +127,15 @@ for station, s in stations.items():
     latest_idx = None
     
     for i in sorted(range(len(s["times"])), key=lambda x: s["times"][x], reverse=True):
-        if (
-            s["PM25"][i] is not None and s["PM25"][i] > -999 and
-            s["NO2"][i] is not None and s["NO2"][i] > -999 and
-            s["O3"][i] is not None and s["O3"][i] > -999
-        ):
+            if (
+                s["PM25"][i] is not None and s["PM25"][i] > -999 and
+                s["NO2"][i] is not None and s["NO2"][i] > -999 and
+                s["O3"][i] is not None and s["O3"][i] > -999 and
+                s["WS"][i] is not None and s["WS"][i] > -999 and
+                s["WD"][i] is not None and s["WD"][i] > -999 and
+                s["TEMP"][i] is not None and s["TEMP"][i] > -999 and
+                s["RH"][i] is not None and s["RH"][i] > -999
+            ):
             latest_idx = i
             break
     
@@ -170,6 +184,114 @@ geojson = {
     "features": features
 }
 
-OUTPUT.write_text(json.dumps(geojson, indent=2))
+OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 
 print("Stations processed:", len(features))
+
+
+import pandas as pd
+import numpy as np
+
+latest_rows = []
+
+for station, s in stations.items():
+    rows = []
+
+    for i in range(len(s["times"])):
+        t = s["times"][i]
+        pm25 = s["PM25"][i]
+        no2  = s["NO2"][i]
+        o3   = s["O3"][i]
+        ws   = s["WS"][i]
+        wd   = s["WD"][i]
+        temp = s["TEMP"][i]
+        rh   = s["RH"][i]
+
+        if t is None:
+            continue
+        if pm25 is None or pm25 <= -999:
+            continue
+        if no2 is None or no2 <= -999:
+            continue
+        if o3 is None or o3 <= -999:
+            continue
+        if ws is None or ws <= -999:
+            continue
+        if wd is None or wd <= -999:
+            continue
+        if temp is None or temp <= -999:
+            continue
+        if rh is None or rh <= -999:
+            continue
+
+        rows.append({
+            "station": station,
+            "datetime": datetime.fromtimestamp(t / 1000, timezone.utc).isoformat(),
+            "PM25": float(pm25),
+            "NO2": float(no2),
+            "O3": float(o3),
+            "WS": float(ws),
+            "WD": float(wd),
+            "TEMP": float(temp),
+            "RH": float(rh),
+            "lat": float(s["lat"]),
+            "lon": float(s["lon"])
+        })
+
+    if len(rows) < 13:
+        continue
+    
+    df_station = pd.DataFrame(rows)
+    df_station["datetime"] = pd.to_datetime(df_station["datetime"], errors="coerce")
+    df_station = df_station.sort_values("datetime").reset_index(drop=True) 
+
+    for lag in [1, 2, 3, 6, 12]:
+        df_station[f"PM25_lag{lag}"] = df_station["PM25"].shift(lag)
+        df_station[f"O3_lag{lag}"]   = df_station["O3"].shift(lag)
+        df_station[f"NO2_lag{lag}"]  = df_station["NO2"].shift(lag)
+
+    latest = df_station.iloc[-1].copy()
+
+    needed = [
+        "PM25_lag1","PM25_lag2","PM25_lag3","PM25_lag6","PM25_lag12",
+        "O3_lag1","O3_lag2","O3_lag3","O3_lag6","O3_lag12",
+        "NO2_lag1","NO2_lag2","NO2_lag3","NO2_lag6","NO2_lag12"
+    ]
+
+    if latest[needed].isna().any():
+        continue
+
+    latest_rows.append(latest)
+
+
+if latest_rows:
+    latest_df = pd.DataFrame(latest_rows).copy()
+
+    lat_min, lat_max = latest_df["lat"].min(), latest_df["lat"].max()
+    lon_min, lon_max = latest_df["lon"].min(), latest_df["lon"].max()
+
+    latest_df["lat_norm"] = (latest_df["lat"] - lat_min) / (lat_max - lat_min) if lat_max != lat_min else 0.5
+    latest_df["lon_norm"] = (latest_df["lon"] - lon_min) / (lon_max - lon_min) if lon_max != lon_min else 0.5
+
+    regina_lat = 50.4452
+    regina_lon = -104.6189
+
+    def haversine_km(lon1, lat1, lon2, lat2):
+        r = 6371.0
+        lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+        return 2 * r * np.arcsin(np.sqrt(a))
+
+    latest_df["dist_center"] = haversine_km(
+        latest_df["lon"].values,
+        latest_df["lat"].values,
+        regina_lon,
+        regina_lat
+    )
+
+    latest_df.to_csv("data/latest_observations.csv", index=False)
+    print("Saved forecast-ready table: data/latest_observations.csv")
+else:
+    print("No forecast-ready rows available for latest_observations.csv")
