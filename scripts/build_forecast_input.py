@@ -8,8 +8,8 @@ API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly
 
 now_utc = datetime.now(timezone.utc)
 cutoff = now_utc - timedelta(hours=24)
-cutoff_ms = int(cutoff.timestamp() * 1000)
-cutoff_str = cutoff.strftime("%Y-%m-%d %H:%M:%S")
+start_ms = int(cutoff.timestamp() * 1000)
+end_ms = int(now_utc.timestamp() * 1000)
 
 def safe_float(x):
     try:
@@ -20,7 +20,7 @@ def safe_float(x):
 r = requests.get(
     API,
     params={
-        "where": f"DATETIME >= {cutoff_str}",
+        "time": f"{start_ms},{end_ms}", 
         "outFields": "COMMUNITY,PM2_5,NO2,O3,WS,WD,TEMP,RH,DATETIME",
         "orderByFields": "COMMUNITY ASC, DATETIME ASC",
         "f": "geojson",
@@ -28,7 +28,17 @@ r = requests.get(
     }
 )
 
+print("Status:", r.status_code)
+
 data = r.json()
+
+if "features" not in data:
+    print("API RESPONSE ERROR:")
+    print(data)
+    raise SystemExit("No features returned")
+
+
+
 
 stations = {}
 
