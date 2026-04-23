@@ -27,11 +27,12 @@ jobs:
       - name: Install packages
         run: |
           pip install \
+            requests \
             pandas \
-            geopandas \
-            scipy \
             numpy \
+            scipy \
             shapely \
+            geopandas \
             scikit-learn
 
       - name: Run script
