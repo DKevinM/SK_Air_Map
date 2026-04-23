@@ -9,11 +9,12 @@ OUTPUT = Path("data/current_map.geojson")
 now_utc = datetime.now(timezone.utc)
 cutoff = now_utc - timedelta(hours=3)
 cutoff_ms = int(cutoff.timestamp() * 1000)
+cutoff_str = cutoff.strftime("%Y-%m-%d %H:%M:%S")
 
 r = requests.get(
     API,
     params={
-        "where": f"DATETIME >= {cutoff_ms}",
+        "where": f"DATETIME >= {cutoff_str}",
         "outFields": "COMMUNITY,PM2_5,NO2,O3,DATETIME",
         "orderByFields": "COMMUNITY ASC, DATETIME DESC",
         "f": "geojson",
