@@ -9,6 +9,7 @@ API = "https://services3.arcgis.com/zcv98lgAl8xQ04cW/ArcGIS/rest/services/Hourly
 now_utc = datetime.now(timezone.utc)
 cutoff = now_utc - timedelta(hours=24)
 cutoff_ms = int(cutoff.timestamp() * 1000)
+cutoff_str = cutoff.strftime("%Y-%m-%d %H:%M:%S")
 
 def safe_float(x):
     try:
@@ -19,7 +20,7 @@ def safe_float(x):
 r = requests.get(
     API,
     params={
-        "where": f"DATETIME >= {cutoff_ms}",
+        "where": f"DATETIME >= {cutoff_str}",
         "outFields": "COMMUNITY,PM2_5,NO2,O3,WS,WD,TEMP,RH,DATETIME",
         "orderByFields": "COMMUNITY ASC, DATETIME ASC",
         "f": "geojson",
