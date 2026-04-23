@@ -214,22 +214,6 @@ for station, s in stations.items():
         temp = s["TEMP"][i]
         rh   = s["RH"][i]
 
-        if t is None:
-            continue
-        if pm25 is None or pm25 <= -999:
-            continue
-        if no2 is None or no2 <= -999:
-            continue
-        if o3 is None or o3 <= -999:
-            continue
-        if ws is None or ws <= -999:
-            continue
-        if wd is None or wd <= -999:
-            continue
-        if temp is None or temp <= -999:
-            continue
-        if rh is None or rh <= -999:
-            continue
 
         rows.append({
             "station": station,
