@@ -265,6 +265,8 @@ for station, s in stations.items():
         "NO2_lag1","NO2_lag2","NO2_lag3","NO2_lag6","NO2_lag12"
     ]
 
+    latest[needed] = latest[needed].fillna(method="ffill").fillna(method="bfill")
+    
     if latest[needed].isna().any():
         continue
 
