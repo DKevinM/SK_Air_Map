@@ -246,7 +246,7 @@ for station, s in stations.items():
         df_station[f"O3_lag{lag}"]   = df_station["O3"].shift(lag)
         df_station[f"NO2_lag{lag}"]  = df_station["NO2"].shift(lag)
 
-    latest = df_station.iloc[-1].copy()
+    latest = df_station.dropna(subset=["PM25", "NO2", "O3"]).iloc[-1].copy()
 
     needed = [
         "PM25_lag1","PM25_lag2","PM25_lag3","PM25_lag6","PM25_lag12",
