@@ -78,29 +78,48 @@ for station, s in stations.items():
         continue
 
     df = df.sort_values("datetime").reset_index(drop=True)
-
-    # ---- MINIMAL LAG ONLY ----
-    df["PM25_lag1"] = df["PM25"].shift(1)
-    df["NO2_lag1"]  = df["NO2"].shift(1)
-    df["O3_lag1"]   = df["O3"].shift(1)
-
-    # ---- KEEP VALID CORE DATA ----
-    df = df.dropna(subset=["PM25","NO2","O3"])
-
-    if df.empty:
+    
+    if len(df) < 3:
         continue
-
-    latest = df.iloc[-1].copy()
-
-    # ---- FILL LAG GAPS ----
-    lag_cols = ["PM25_lag1","NO2_lag1","O3_lag1"]
-    latest[lag_cols] = latest[lag_cols].fillna(method="ffill").fillna(method="bfill")
-
-    latest["station"] = station
-    latest["lat"] = s["lat"]
-    latest["lon"] = s["lon"]
-
-    latest_rows.append(latest)
+    
+    last3 = df.tail(3).reset_index(drop=True)
+    
+    row = {
+        "station": station,
+        "datetime": last3.loc[2, "datetime"],
+    
+        # PM
+        "PM25_0": last3.loc[2, "PM25"],
+        "PM25_1": last3.loc[1, "PM25"],
+        "PM25_2": last3.loc[0, "PM25"],
+    
+        # NO2
+        "NO2_0": last3.loc[2, "NO2"],
+        "NO2_1": last3.loc[1, "NO2"],
+        "NO2_2": last3.loc[0, "NO2"],
+    
+        # O3
+        "O3_0": last3.loc[2, "O3"],
+        "O3_1": last3.loc[1, "O3"],
+        "O3_2": last3.loc[0, "O3"],
+    
+        # trends (important)
+        "PM25_trend": last3.loc[2, "PM25"] - last3.loc[1, "PM25"],
+        "NO2_trend":  last3.loc[2, "NO2"]  - last3.loc[1, "NO2"],
+        "O3_trend":   last3.loc[2, "O3"]   - last3.loc[1, "O3"],
+    
+        # met
+        "WS": last3.loc[2, "WS"],
+        "WD": last3.loc[2, "WD"],
+        "TEMP": last3.loc[2, "TEMP"],
+        "RH": last3.loc[2, "RH"],
+    
+        # spatial
+        "lat": s["lat"],
+        "lon": s["lon"]
+    }
+    
+    latest_rows.append(row)
 
 # ---- OUTPUT ----
 OUTPUT = Path("data/latest_observations.csv")
