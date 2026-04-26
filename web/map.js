@@ -14,7 +14,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   var map = L.map(mapDiv).setView([52.5, -106], 6);
-    
+  setTimeout(() => map.invalidateSize(), 100);
+  
 window.map = map;
 
 var stationLayer = L.layerGroup().addTo(map);
