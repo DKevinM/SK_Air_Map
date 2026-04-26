@@ -124,7 +124,7 @@ var pm25Layer = loadPM25Layer(
   "https://raw.githubusercontent.com/dkevinm/AB_datapull/main/dataSK/SK_PM25_map.json"
 );
 
-var aqhiGridLayer = loadAqhiGridLayer("data/sk_aqhi_grid.geojson");
+var aqhiGridLayer = L.layerGroup();
 
     
 var baseLayers = {
@@ -527,39 +527,65 @@ window.buildPopupWeatherTable = function(data) {
     
 var aqhiLookup = {};
 var forecastLookup = {};
-    Promise.all([
-      fetch("data/sk_aqhi_current.geojson").then(r => r.json()),
-      fetch("data/forecast.json").then(r => r.json())
-    ]).then(([currentData, forecastData]) => {
-    
-      currentData.features.forEach(f => {
-        var p = f.properties;
-        aqhiLookup[p.station.toUpperCase()] = {
-          aqhi: Number(p.AQHI),
-          time: p.updated
-        };
-      });
-    
-      forecastData.features.forEach(f => {
-        var p = f.properties;
-        forecastLookup[p.station.toUpperCase()] = {
-          aqhi_fc: p.aqhi_forecast ?? p.AQHI_forecast ?? p.forecast_aqhi ?? p.AQHI ?? null,
-          pm25_fc: p.pm25_forecast ?? p.PM2_5 ?? null,
-          time_fc: p.forecast_time ?? p.updated ?? null
-        };
-      });
-    
-      console.log("AQHI lookup table:", aqhiLookup);
-      console.log("Forecast lookup table:", forecastLookup);
-    
-      loadStations();
-    
-    }).catch(err => {
-      console.error("Failed loading AQHI/forecast files:", err);
-      loadStations();
+
+async function loadJsonOrNull(url) {
+  try {
+    const r = await fetch(url + "?v=" + Date.now());
+    if (!r.ok) {
+      console.warn("[SKAirMap] Missing file:", url, r.status);
+      return null;
+    }
+    return await r.json();
+  } catch (err) {
+    console.warn("[SKAirMap] Failed loading:", url, err);
+    return null;
+  }
+}
+
+Promise.all([
+  loadJsonOrNull("data/sk_aqhi_current.geojson"),
+  loadJsonOrNull("data/forecast.json")
+]).then(([currentData, forecastData]) => {
+
+  if (currentData && currentData.features) {
+    currentData.features.forEach(f => {
+      var p = f.properties || {};
+      var stationName = p.station || p.COMMUNITY || p.name;
+
+      if (!stationName) return;
+
+      aqhiLookup[stationName.toUpperCase()] = {
+        aqhi: Number(p.AQHI ?? p.aqhi),
+        time: p.updated ?? p.time ?? p.datetime ?? null
+      };
     });
+  } else {
+    console.warn("[SKAirMap] No current AQHI file loaded.");
+  }
 
+  if (forecastData && forecastData.features) {
+    forecastData.features.forEach(f => {
+      var p = f.properties || {};
+      var stationName = p.station || p.COMMUNITY || p.name;
 
+      if (!stationName) return;
+
+      forecastLookup[stationName.toUpperCase()] = {
+        aqhi_fc: p.aqhi_forecast ?? p.AQHI_forecast ?? p.forecast_aqhi ?? p.AQHI ?? null,
+        pm25_fc: p.pm25_forecast ?? p.PM2_5 ?? null,
+        time_fc: p.forecast_time ?? p.updated ?? null
+      };
+    });
+  } else {
+    console.warn("[SKAirMap] No forecast file loaded.");
+  }
+
+  console.log("AQHI lookup table:", aqhiLookup);
+  console.log("Forecast lookup table:", forecastLookup);
+
+  loadStations();
+
+});
     
 
 
@@ -605,8 +631,8 @@ fetch(api)
           "</div>",
         iconSize: [38, 38]
       });
-    
-      console.log(p.COMMUNITY, aqhiLookup[p.COMMUNITY.toUpperCase()]);
+      
+      console.log(p.COMMUNITY, aqhiLookup[stationKey]);
       return L.marker(latlng, { icon: icon });
     
     },
@@ -614,9 +640,11 @@ fetch(api)
     onEachFeature:function(feature,layer){
 
     var p = feature.properties;
+        
+    var stationKey = String(p.COMMUNITY || p.station || p.name || "").toUpperCase();
     
-    var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
-    var fcData = forecastLookup[p.COMMUNITY.toUpperCase()];
+    var aqhiData = aqhiLookup[stationKey];
+    var fcData = forecastLookup[stationKey];
     
     var aqhi = aqhiData ? aqhiData.aqhi : null;
     var aqhiTime = aqhiData && aqhiData.time ? new Date(aqhiData.time).toLocaleString() : "N/A";
