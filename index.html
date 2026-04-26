@@ -8,99 +8,147 @@
   <link rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-    }
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
 
-    #map {
-      position: absolute;
-      top: 0;
-      left: 320px;
-      right: 0;
-      bottom: 0;
-    }
+  #header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    background: #1266d6;
+    color: white;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+  }
 
-    #panel {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 320px;
-      height: 100%;
-      overflow-y: auto;
-      background: #fff;
-      border-right: 1px solid #ccc;
-      z-index: 1000;
-      padding: 12px;
-      box-sizing: border-box;
-    }
+  #header-left {
+    width: 320px;
+    padding-left: 12px;
+    font-weight: bold;
+    font-size: 18px;
+  }
 
-    #panel h3 {
-      margin: 0 0 10px 0;
-      font-size: 18px;
-    }
+  #header-center {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+  }
 
-    #panel input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 8px;
-      box-sizing: border-box;
-    }
+  #app {
+    position: absolute;
+    top: 34px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
 
-    #panel button {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 12px;
-      cursor: pointer;
-    }
+  #map {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
 
-    .panel-section {
-      margin-bottom: 14px;
-      font-size: 13px;
-      line-height: 1.35;
-    }
+  #panel {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 300px;
+    max-height: calc(100% - 80px);
+    overflow-y: auto;
+    background: rgba(255,255,255,0.94);
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    z-index: 1000;
+    padding: 12px;
+    box-sizing: border-box;
+  }
 
-    .aqhi-marker div {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 2px solid #333;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 16px;
-      color: black;
-      text-shadow:
-        -1px -1px 0 #fff,
-         1px -1px 0 #fff,
-        -1px  1px 0 #fff,
-         1px  1px 0 #fff;
-    }
-  </style>
+  #panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+  }
+
+  #panel input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+  }
+
+  #panel button {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+
+  .panel-section {
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .aqhi-marker div {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    color: black;
+    text-shadow:
+      -1px -1px 0 #fff,
+       1px -1px 0 #fff,
+      -1px  1px 0 #fff,
+       1px  1px 0 #fff;
+  }
+</style>
 </head>
 
 <body>
 
-  <div id="panel">
-    <h3>SK Air Monitoring</h3>
-
-    <input id="addressInput" type="text" placeholder="Enter address or place">
-    <button onclick="lookupAddress()">Go to address</button>
-
-    <div id="panel-location" class="panel-section"></div>
-    <div id="panel-weather" class="panel-section"></div>
-    <div id="mini-weather" class="panel-section"></div>
-    <div id="mini-weather-forecast" class="panel-section"></div>
-    <div id="panel-forecast" class="panel-section"></div>
+  <div id="header">
+    <div id="header-left">SK Air Monitoring</div>
+    <div id="header-center">Click anywhere on the map to identify nearby stations, sensors, and weather</div>
   </div>
 
-  <div id="map"></div>
+  <div id="app">
+    <div id="map"></div>
+
+    <div id="panel">
+      <h3>SK Air Monitoring</h3>
+
+      <input id="addressInput" type="text" placeholder="Enter address or place">
+      <button onclick="lookupAddress()">Go to address</button>
+
+      <div id="panel-location" class="panel-section"></div>
+      <div id="panel-weather" class="panel-section"></div>
+      <div id="mini-weather" class="panel-section"></div>
+      <div id="mini-weather-forecast" class="panel-section"></div>
+      <div id="panel-forecast" class="panel-section"></div>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="web/map.js"></script>
+  <script src="web/map.js?v=20260426"></script>
 </body>
 </html>
