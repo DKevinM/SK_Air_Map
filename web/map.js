@@ -1,11 +1,19 @@
 // create map
 document.addEventListener("DOMContentLoaded", function () {
 
-if (window.map) {
-    window.map.remove();
-}
+  const mapDiv = document.getElementById("map");
+  console.log("[SKAirMap] mapDiv:", mapDiv);
 
-var map = L.map("map").setView([52.5,-106],6);
+  if (!mapDiv) {
+    console.error("[SKAirMap] No #map div found. Check index.html and script path.");
+    return;
+  }
+
+  if (window.map) {
+    window.map.remove();
+  }
+
+  var map = L.map(mapDiv).setView([52.5, -106], 6);
     
 window.map = map;
 
