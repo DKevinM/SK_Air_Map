@@ -618,8 +618,10 @@ fetch(api)
 
     pointToLayer: function(feature, latlng) {
     
-      var p = feature.properties;
-      var aqhiData = aqhiLookup[p.COMMUNITY.toUpperCase()];
+      var p = feature.properties || {};
+      var stationKey = String(p.COMMUNITY || p.station || p.name || "").toUpperCase();
+    
+      var aqhiData = aqhiLookup[stationKey];
       var aqhi = aqhiData ? aqhiData.aqhi : null;
       var color = aqhiColor(aqhi);
     
@@ -631,7 +633,7 @@ fetch(api)
           "</div>",
         iconSize: [38, 38]
       });
-      
+    
       console.log(p.COMMUNITY, aqhiLookup[stationKey]);
       return L.marker(latlng, { icon: icon });
     
@@ -639,8 +641,7 @@ fetch(api)
 
     onEachFeature:function(feature,layer){
 
-    var p = feature.properties;
-        
+    var p = feature.properties || {};
     var stationKey = String(p.COMMUNITY || p.station || p.name || "").toUpperCase();
     
     var aqhiData = aqhiLookup[stationKey];
