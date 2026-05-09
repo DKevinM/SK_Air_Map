@@ -1,9 +1,9 @@
 name: Build Air Data
 
-on:
-  schedule:
-    - cron: '*/20 * * * *'   # every 20 minutes
-  workflow_dispatch:
+# on:
+  # schedule:
+    # - cron: '*/20 * * * *'   # every 20 minutes
+  # workflow_dispatch:
 
 permissions:
   contents: write 
