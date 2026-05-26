@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Air Quality Monitoring – Saskatchewan</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <script>
+    window.APP_CONFIG = {
+      airshed: "SK",
+      title: "Live Air Quality Monitoring – Saskatchewan",
+      enableHistory: false,
+      timezone: "America/Regina",
+      bounds: [[48.9, -110.1], [60.1, -101.3]],
+      center: [52.5, -106.0],
+      zoom: 6,
+      currentAQHIUrl: "data/current_map.geojson",
+      forecastUrl: "data/forecast.json",
+      purpleAirUrl: "dataSK/SK_PM25_map.json",
+      overlays: [
+        "stations",
+        "forecast",
+        "purpleair",
+        "weather_radar",
+        "weather_wind_u",
+        "weather_lightning",
+        "weather_thunderstorm"
+      ]
+    };
+  </script>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+</head>
+<body>
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span id="close">&times;</span>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="header">
+  <div id="header-left">Live Air Quality Monitoring – Saskatchewan</div>
+  <div id="header-center">Click anywhere on the map to identify nearby stations, sensors, forecast AQHI, and weather</div>
+  <div id="header-right"></div>
+</div>
+
+<div style="position:absolute; top:8px; right:25px; z-index:1000;">
+  <input id="addressInput" type="text" placeholder="Enter address..." style="padding:6px; width:250px;" />
+  <button onclick="lookupAddress()">Go</button>
+</div>
+
+<div id="app">
+  <div id="map"></div>
+  <div id="panel">
+    <div id="aqhi-panel"><div id="aqhi-content"></div></div>
+    <div id="station-gauges"></div>
+  </div>
+</div>
+
+<button onclick="clearSelection()" id="clear-btn">Clear Selection</button>
+
+<script src="js/data.js" defer></script>
+<script src="js/aqhi.js" defer></script>
+<script src="js/click_utils.js" defer></script>
+<script src="js/render.js" defer></script>
+<script src="js/map.js" defer></script>
+<script src="js/purpleair.js" defer></script>
+<script src="js/weather.js" defer></script>
+<script src="js/click_engine.js" defer></script>
+<script src="js/ui.js" defer></script>
+<script src="js/geocode.js" defer></script>
+<script src="js/main.js"></script>
+</body>
+</html>
