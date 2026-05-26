@@ -1,0 +1,41 @@
+#header {
+  background: #0b5ed7;
+  color: white;
+  padding: 10px;
+  font-size: 22px;
+}
+
+#panel {
+  background: #ffffff;
+  border-left: 1px solid #ccc;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.legend img {
+  background: white;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white;
+  margin: 5% auto;
+  padding: 20px;
+  width: 80%;
+  border-radius: 8px;
+}
+
+#close {
+  float: right;
+  cursor: pointer;
+  font-size: 24px;
+}
