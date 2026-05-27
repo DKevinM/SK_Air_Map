@@ -87,11 +87,22 @@ window.buildStationPopup = function(rows) {
 };
 
 async function fetchJsonMaybe(url) {
+  if (!url) return null;
+
   try {
     const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now());
-    if (!r.ok) return null;
+
+    if (!r.ok) {
+      console.warn("Load failed:", url, r.status, r.statusText);
+      return null;
+    }
+
     return await r.json();
-  } catch (e) { console.warn("Load failed:", url, e); return null; }
+
+  } catch (e) {
+    console.warn("Load failed:", url, e);
+    return null;
+  }
 }
 
 async function loadStations() {
