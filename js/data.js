@@ -90,7 +90,7 @@ async function fetchJsonMaybe(url) {
   if (!url) return null;
 
   try {
-    const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=" + Date.now());
+    const r = await fetch(url + (url.includes("?") ? "&" : "?") + "v=");
 
     if (!r.ok) {
       console.warn("Load failed:", url, r.status, r.statusText);
