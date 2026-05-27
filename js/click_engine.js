@@ -4,7 +4,7 @@
 
 window.aqhiForecastLookup = {};
 fetch(
-  "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/aqhi_forecasts.geojson"
+  "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/aqhi_forecasts.geojson"
 )
 .then(r => r.json())
 .then(data => {
