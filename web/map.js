@@ -54,7 +54,7 @@ function loadSmokeLayer(url){
 
   var layer = L.layerGroup();
 
-  fetch(url + "?v=" + Date.now())
+  fetch(url)
   .then(r => r.json())
   .then(data => {
 
@@ -93,7 +93,7 @@ function aqhiGridStyle(feature) {
 function loadAqhiGridLayer(url) {
   var layer = L.layerGroup();
 
-  fetch(url + "?v=" + Date.now())
+  fetch(url)
     .then(r => r.json())
     .then(data => {
       L.geoJSON(data, {
@@ -189,7 +189,7 @@ function loadPM25Layer(url){
 
   var layer = L.layerGroup();
 
-  fetch(url + "?v=" + Date.now())
+  fetch(url)
   .then(r => r.json())
   .then(data => {
 
@@ -531,7 +531,7 @@ var forecastLookup = {};
 
 async function loadJsonOrNull(url) {
   try {
-    const r = await fetch(url + "?v=" + Date.now());
+    const r = await fetch(url);
     if (!r.ok) {
       console.warn("[SKAirMap] Missing file:", url, r.status);
       return null;
