@@ -12,14 +12,86 @@ window.initMap = function(){
   legend.onAdd = function(){ const img=L.DomUtil.create("img"); img.src="images/aqhi_legend.png"; img.style.width="275px"; return img; };
   legend.addTo(map);
   window.layers = {
-    stations:L.layerGroup().addTo(map), click:L.layerGroup().addTo(map), purpleair:L.layerGroup().addTo(map), forecast:L.layerGroup(),
-    weather_radar:L.layerGroup(), weather_wind_u:L.layerGroup(), weather_lightning:L.layerGroup(), weather_thunderstorm:L.layerGroup()
+  
+    stations: L.layerGroup().addTo(map),
+    click: L.layerGroup().addTo(map),
+    purpleair: L.layerGroup().addTo(map),
+    forecast: L.layerGroup(),
+  
+    weather_radar: L.layerGroup(),
+    weather_wind_u: L.layerGroup(),
+    weather_lightning: L.layerGroup(),
+    weather_thunderstorm: L.layerGroup(),
+  
+    firesmoke_now: L.layerGroup(),
+    firesmoke_6h: L.layerGroup(),
+    firesmoke_12h: L.layerGroup(),
+    firesmoke_24h: L.layerGroup()
+  
   };
   window.layers.weather_radar.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"RADAR_1KM_RRAI",format:"image/png",transparent:true,opacity:0.85}));
   window.layers.weather_wind_u.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"HRDPS.CONTINENTAL_UU",format:"image/png",transparent:true,opacity:0.7}));
   window.layers.weather_lightning.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"Lightning_2.5km_Density",format:"image/png",transparent:true,opacity:0.85}));
   window.layers.weather_thunderstorm.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"GDPS-WEonG_15km_Thunderstorm-Prob.3h",format:"image/png",transparent:true,opacity:0.75}));
-  const labels = {stations:"Stations", forecast:"SK AQHI Forecast", purpleair:"Sensors (PurpleAir)", weather_radar:"Radar", weather_wind_u:"Winds", weather_lightning:"Lightning", weather_thunderstorm:"Thunderstorm (3h)"};
+
+  const smokeBounds = [
+    [42, -130],
+    [65, -90]
+  ];
+  
+  window.layers.firesmoke_now.addLayer(
+    L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_now.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    )
+  );
+  
+  window.layers.firesmoke_6h.addLayer(
+    L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_6h.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    )
+  );
+  
+  window.layers.firesmoke_12h.addLayer(
+    L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_12h.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    )
+  );
+  
+  window.layers.firesmoke_24h.addLayer(
+    L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_24h.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    )
+  );
+
+
+  
+  const labels = {
+  
+    stations:"Stations",
+    forecast:"SK AQHI Forecast",
+    purpleair:"Sensors (PurpleAir)",
+  
+    firesmoke_now:"FireSmoke Current",
+    firesmoke_6h:"FireSmoke +6h",
+    firesmoke_12h:"FireSmoke +12h",
+    firesmoke_24h:"FireSmoke +24h",
+  
+    weather_radar:"Radar",
+    weather_wind_u:"Winds",
+    weather_lightning:"Lightning",
+    weather_thunderstorm:"Thunderstorm (3h)"
+  
+  };
+
+  
   const overlays = {};
   (cfg.overlays || Object.keys(labels)).forEach(k => { if(window.layers[k]) overlays[labels[k] || k] = window.layers[k]; });
   window._layerControl = L.control.layers({OpenStreetMap:osm, Satellite:satellite}, overlays, {collapsed:false}).addTo(map);
