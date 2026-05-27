@@ -24,6 +24,12 @@
         "stations",
         "forecast",
         "purpleair",
+        
+        "firesmoke_now",
+        "firesmoke_6h",
+        "firesmoke_12h",
+        "firesmoke_24h",
+        
         "weather_radar",
         "weather_wind_u",
         "weather_lightning",
@@ -39,6 +45,41 @@
   <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+  <script>  
+  const smokeBounds = [
+    [42, -130],
+    [65, -90]
+  ];
+  const smokeLayers = {
+    firesmoke_now: L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_now.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    ),
+    firesmoke_6h: L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_6h.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    ),
+    firesmoke_12h: L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_12h.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    ),
+    firesmoke_24h: L.imageOverlay(
+      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_24h.png",
+      smokeBounds,
+      { opacity: 0.55 }
+    )
+  };
+  
+  window.smokeLayers = smokeLayers;
+  
+  </script>
+
+
+  
 </head>
 <body>
 <div id="modal" class="modal">
