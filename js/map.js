@@ -47,7 +47,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_now.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_now.png",
+      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/firesmoke_now.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -55,7 +55,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_6h.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_6h.png",
+      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/firesmoke_6h.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -63,7 +63,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_12h.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_12h.png",
+      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/firesmoke_12h.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -71,7 +71,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_24h.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/firesmoke_24h.png",
+      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/firesmoke_24h.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -82,22 +82,22 @@ window.initMap = function(){
   // =====================================================
   
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/sk_current_blend.geojson",
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_current_blend.geojson",
     window.layers.sk_current
   );
   
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/sk_forecast_3h_blend.geojson",
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_forecast_3h_blend.geojson",
     window.layers.sk_forecast
   );
   
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/regina_current_blend.geojson",
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/regina_current_blend.geojson",
     window.layers.regina_current
   );
   
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/regina_forecast_3h_blend.geojson",
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/regina_forecast_3h_blend.geojson",
     window.layers.regina_forecast
   );
 
