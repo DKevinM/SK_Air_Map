@@ -21,10 +21,12 @@ window.getColor = window.getAQHIColor = function (val) {
   return "#640100";
 };
 
+
+
 const TZ = window.APP_CONFIG?.timezone || "America/Regina";
-const currentAQHIUrl = window.APP_CONFIG?.currentAQHIUrl || "data/current_map.geojson";
-const purpleAirUrl = window.APP_CONFIG?.purpleAirUrl || "dataSK/SK_PM25_map.json";
-const forecastUrl = window.APP_CONFIG?.forecastUrl || "data/forecast.json";
+const currentAQHIUrl = window.APP_CONFIG?.currentAQHIUrl;
+const purpleAirUrl = window.APP_CONFIG?.purpleAirUrl;
+const forecastUrl = window.APP_CONFIG?.forecastUrl;
 
 const skParams = [
   ["AQHI", "AQHI", ""],
@@ -93,7 +95,7 @@ async function fetchJsonMaybe(url) {
 }
 
 async function loadStations() {
-  const geo = await fetchJsonMaybe(currentAQHIUrl) || await fetchJsonMaybe("data/sk_aqhi_current.geojson");
+  const geo = await fetchJsonMaybe(currentAQHIUrl);
   const features = geo?.features || [];
   return features.map(normalStationFeature).filter(Boolean);
 }
