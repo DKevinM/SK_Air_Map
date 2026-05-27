@@ -17,6 +17,12 @@ window.initMap = function(){
     click: L.layerGroup().addTo(map),
     purpleair: L.layerGroup().addTo(map),
     forecast: L.layerGroup(),
+
+    sk_current: L.layerGroup().addTo(map),
+    sk_forecast: L.layerGroup(),
+    
+    regina_current: L.layerGroup(),
+    regina_forecast: L.layerGroup(),
   
     weather_radar: L.layerGroup(),
     weather_wind_u: L.layerGroup(),
@@ -71,12 +77,99 @@ window.initMap = function(){
     )
   );
 
+  // =====================================================
+  // LOAD AQHI GRID OVERLAYS
+  // =====================================================
+  
+  loadAQHIGrid(
+    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/sk_current_blend.geojson",
+    window.layers.sk_current
+  );
+  
+  loadAQHIGrid(
+    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/sk_forecast_3h_blend.geojson",
+    window.layers.sk_forecast
+  );
+  
+  loadAQHIGrid(
+    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/regina_current_blend.geojson",
+    window.layers.regina_current
+  );
+  
+  loadAQHIGrid(
+    "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/regina_forecast_3h_blend.geojson",
+    window.layers.regina_forecast
+  );
 
+
+
+  
+  // =====================================================
+  // AQHI GRID LOADER
+  // =====================================================
+  
+  function aqhiGridStyle(feature){
+  
+    return {
+      fillColor: feature.properties.color || "#999999",
+      weight: 0,
+      color: "none",
+      fillOpacity: 0.45
+    };
+  
+  }
+  
+  function loadAQHIGrid(url, targetLayer){
+  
+    fetch(url + "?v=" + Date.now())
+  
+      .then(r => r.json())
+  
+      .then(data => {
+  
+        console.log("Loaded AQHI grid:", url);
+  
+        L.geoJSON(data, {
+  
+          style: aqhiGridStyle,
+  
+          onEachFeature: function(feature, layer){
+  
+            const p = feature.properties || {};
+  
+            layer.bindTooltip(
+              `
+              AQHI: ${p.AQHI ?? "N/A"}<br>
+              ${p.category ?? ""}
+              `
+            );
+  
+          }
+  
+        }).addTo(targetLayer);
+  
+      })
+  
+      .catch(err => {
+        console.error("AQHI grid failed:", url, err);
+      });
+  
+  }
+
+
+  
   
   const labels = {
   
     stations:"Stations",
     forecast:"SK AQHI Forecast",
+
+    sk_current:"SK AQHI Current Grid",
+    sk_forecast:"SK AQHI Forecast Grid",
+    
+    regina_current:"Regina AQHI Current",
+    regina_forecast:"Regina AQHI Forecast",
+    
     purpleair:"Sensors (PurpleAir)",
   
     firesmoke_now:"FireSmoke Current",
