@@ -1,3 +1,32 @@
+// =====================================================
+// ECCC AQHI FORECAST LOOKUP
+// =====================================================
+
+window.aqhiForecastLookup = {};
+fetch(
+  "https://raw.githubusercontent.com/DKevinM/SK_AQHI_Forecast/main/data/aqhi_forecasts.geojson"
+)
+.then(r => r.json())
+.then(data => {
+  data.features.forEach(f => {
+    const p = f.properties || {};
+    if(!p.name) return;
+    window.aqhiForecastLookup[
+      p.name.toUpperCase()
+    ] = p;
+  });
+  console.log(
+    "Loaded ECCC AQHI forecasts:",
+    Object.keys(window.aqhiForecastLookup).length
+  );
+})
+.catch(err => {
+  console.error(
+    "AQHI forecast lookup failed:",
+    err
+  );
+});
+
 
 window.handleMapClick = async function(lat, lng, map) {
 
@@ -74,6 +103,24 @@ window.handleMapClick = async function(lat, lng, map) {
       window.layers.click.addLayer(circle);
     }
   });
+
+
+  
+  // =====================================================
+  // CLOSEST ECCC FORECAST
+  // =====================================================
+  
+  let closestForecast = null;  
+  if(
+    closestStations &&
+    closestStations.length > 0
+  ){
+    const key =
+      closestStations[0].station.toUpperCase();
+    closestForecast =
+      window.aqhiForecastLookup[key] || null;  
+  }
+
 
   
 
@@ -220,6 +267,79 @@ window.handleMapClick = async function(lat, lng, map) {
   `;
 
   
+  // =====================================================
+  // ECCC AQHI FORECAST HTML
+  // =====================================================
+  
+  let forecastHtml = "";
+  
+  if(closestForecast){
+  
+    forecastHtml = `
+  
+      <div style="
+        margin-top:12px;
+        padding-top:8px;
+        border-top:1px solid #ccc;
+      ">
+  
+        <div style="
+          font-weight:700;
+          font-size:13px;
+          margin-bottom:6px;
+        ">
+          ECCC AQHI Forecast
+        </div>
+  
+        <table style="
+          width:100%;
+          font-size:12px;
+        ">
+  
+          <tr>
+            <td>${closestForecast.p1_label ?? "Period 1"}</td>
+            <td style="text-align:right;">
+              ${closestForecast.p1_aqhi ?? "—"}
+            </td>
+          </tr>
+  
+          <tr>
+            <td>${closestForecast.p2_label ?? "Period 2"}</td>
+            <td style="text-align:right;">
+              ${closestForecast.p2_aqhi ?? "—"}
+            </td>
+          </tr>
+  
+          <tr>
+            <td>${closestForecast.p3_label ?? "Period 3"}</td>
+            <td style="text-align:right;">
+              ${closestForecast.p3_aqhi ?? "—"}
+            </td>
+          </tr>
+  
+          <tr>
+            <td>${closestForecast.p4_label ?? "Period 4"}</td>
+            <td style="text-align:right;">
+              ${closestForecast.p4_aqhi ?? "—"}
+            </td>
+          </tr>
+  
+        </table>
+  
+      </div>
+  
+    `;
+  }
+
+
+
+
+
+
+
+
+
+  
   const popupHtml = `
     <div style="font-size:13px; line-height:1.3;">
   
@@ -246,6 +366,7 @@ window.handleMapClick = async function(lat, lng, map) {
       </div>
   
       ${weatherHtml}
+      ${forecastHtml}
   
     </div>
   `;
