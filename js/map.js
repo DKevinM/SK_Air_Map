@@ -121,7 +121,7 @@ window.initMap = function(){
   
   function loadAQHIGrid(url, targetLayer){
   
-    fetch(url + "?v=" + Date.now())
+    fetch(url + "?v=")
   
       .then(r => r.json())
   
