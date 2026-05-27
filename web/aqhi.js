@@ -96,17 +96,15 @@ function getLabel(p, idx) {
 async function loadAQHI() {
 
   const [obs, fc] = await Promise.all([
-    fetch("https://raw.githubusercontent.com/DKevinM/CAN_AQHI/main/data/aqhi_observations.geojson").then(r => r.json()),
-    fetch("https://raw.githubusercontent.com/DKevinM/CAN_AQHI/main/data/aqhi_forecasts.geojson").then(r => r.json())
+    fetch(window.APP_CONFIG.currentAQHIUrl).then(r => r.json()),
+    fetch(window.APP_CONFIG.forecastUrl).then(r => r.json())
   ]);
 
   const obsCal = (obs.features || [])
-    .map(f => f.properties)
-    .filter(p => /community/i.test(p.name));
-
+    .map(f => f.properties);
+  
   const fcCal = (fc.features || [])
-    .map(f => f.properties)
-    .filter(p => /community/i.test(p.name));
+    .map(f => f.properties);
 
   obsCal.sort((a,b) =>
     new Date(b.observed || b.observation_datetime) -
@@ -128,69 +126,6 @@ async function loadAQHI() {
 
   console.log("community AQHI LOADED:", window.aqhiData);
 }
-
-
-
-async function findClosestCommunityName(lat, lng) {
-
-  const obs = await fetch(
-    "https://raw.githubusercontent.com/DKevinM/CAN_AQHI/main/data/aqhi_observations.geojson"
-  ).then(r => r.json());
-
-  let closestName = null;
-  let minDist = Infinity;
-
-  obs.features.forEach(f => {
-    const [lon, lat2] = f.geometry.coordinates;
-    const d = getDistance(lat, lng, lat2, lon);
-
-    if (d < minDist) {
-      minDist = d;
-      closestName = f.properties.name;
-    }
-  });
-
-  console.log("Closest ECCC community:", closestName);
-  return closestName;
-}
-
-
-
-
-
-async function loadAQHIFromAB(clickLat, clickLng) {
-
-    const name = await findClosestCommunityName(clickLat, clickLng);
-  
-    const url =
-    "https://data.environment.alberta.ca/EdwServices/aqhi/odata/CommunityAqhis?$format=json";
-  
-    const r = await fetch(url);
-    const data = await r.json();
-  
-    const match = data.value.find(c =>
-      c.CommunityName.toLowerCase() === name.toLowerCase()
-    );
-  
-    if (!match) {
-      console.error("No Alberta match for:", name);
-      return;
-    }
-  
-    Object.assign(window.aqhiData, {      
-      current: {
-        station: match.CommunityName,
-        value: Number(match.Aqhi),
-        time: match.ReadingDate
-      },
-      forecast: {
-        today: Number(match.ForecastToday),
-        tonight: Number(match.ForecastTonight),
-        tomorrow: Number(match.ForecastTomorrow)
-      }
-    });
-  }
-
 
 
 
@@ -322,7 +257,7 @@ function drawAQHIPanel() {
 
   <div style="margin-top:10px;">
     <div style="font-weight:600;">Environment Canada Weather Alerts</div>
-    <a href="https://weather.gc.ca/?layers=alert&province=AB&zoom=5&center=47.04505510,-129.95671573&alertTableFilterProv=AB" target="_blank">
+    <a href="https://weather.gc.ca/?layers=alert&province=SK&zoom=5&center=47.04505510,-129.95671573&alertTableFilterProv=AB" target="_blank">
         Weather Alerts
     </a><br>
   </div>
@@ -440,14 +375,12 @@ window.refreshAQHIPanel = async function () {
 };
 
 window.updateAQHIFromClick = async function(lat, lng) {
-  await loadAQHIFromAB(lat, lng);
-
-  // Save existing weather block BEFORE panel redraw
-  const existingWeather = document.getElementById("panel-weather")?.innerHTML;
 
   drawAQHIPanel();
 
-  // Put the weather BACK after redraw
+  const existingWeather =
+    document.getElementById("panel-weather")?.innerHTML;
+
   if (existingWeather) {
     const el = document.getElementById("panel-weather");
     if (el) el.innerHTML = existingWeather;
