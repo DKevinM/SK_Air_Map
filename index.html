@@ -11,26 +11,34 @@
       title: "Live Air Quality Monitoring – Saskatchewan",
       enableHistory: false,
       timezone: "America/Regina",
+    
       bounds: [[48.9, -110.1], [60.1, -101.3]],
       center: [52.5, -106.0],
       zoom: 6,
+    
       currentAQHIUrl:
         "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/current_map.geojson",
-      forecastUrl: 
-        null,
-        //"https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/forecast.json",
+    
+      currentBlendUrl:
+        "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_current_blend.geojson",
+    
+      forecastUrl:
+        "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_forecast_3h_blend.geojson",
+    
       purpleAirUrl:
         "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/SK_PM25_map.json",
+    
       overlays: [
         "stations",
+        "current_blend",
         "forecast",
         "purpleair",
-        
+    
         "firesmoke_now",
         "firesmoke_6h",
         "firesmoke_12h",
         "firesmoke_24h",
-        
+    
         "weather_radar",
         "weather_wind_u",
         "weather_lightning",
