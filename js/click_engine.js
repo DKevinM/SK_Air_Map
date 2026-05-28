@@ -1,7 +1,7 @@
 // =====================================================
 // ECCC AQHI FORECAST LOOKUP
 // =====================================================
-
+/*
 window.aqhiForecastLookup = {};
 fetch(
   "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/aqhi_forecasts.geojson"
@@ -26,7 +26,7 @@ fetch(
     err
   );
 });
-
+*/
 
 window.handleMapClick = async function(lat, lng, map) {
 
@@ -109,7 +109,7 @@ window.handleMapClick = async function(lat, lng, map) {
   // =====================================================
   // CLOSEST ECCC FORECAST
   // =====================================================
-  
+  /*
   let closestForecast = null;  
   if(
     closestStations &&
@@ -120,7 +120,7 @@ window.handleMapClick = async function(lat, lng, map) {
     closestForecast =
       window.aqhiForecastLookup[key] || null;  
   }
-
+  */
 
   
 
@@ -270,7 +270,7 @@ window.handleMapClick = async function(lat, lng, map) {
   // =====================================================
   // ECCC AQHI FORECAST HTML
   // =====================================================
-  
+  /*
   let forecastHtml = "";
   
   if(closestForecast){
@@ -331,7 +331,7 @@ window.handleMapClick = async function(lat, lng, map) {
     `;
   }
 
-
+*/
 
 
 
