@@ -27,6 +27,7 @@ const TZ = window.APP_CONFIG?.timezone || "America/Regina";
 const currentAQHIUrl = window.APP_CONFIG?.currentAQHIUrl;
 const purpleAirUrl = window.APP_CONFIG?.purpleAirUrl;
 const forecastUrl = window.APP_CONFIG?.forecastUrl;
+const currentBlendUrl = window.APP_CONFIG?.currentBlendUrl;
 
 const skParams = [
   ["AQHI", "AQHI", ""],
@@ -125,6 +126,13 @@ async function loadForecast() {
   }).filter(Boolean);
 }
 
+async function loadCurrentBlend() {
+  const geo = await fetchJsonMaybe(currentBlendUrl);
+  if (!geo?.features) return null;
+  return geo;
+}
+
+
 async function loadPurpleAir() {
   const json = await fetchJsonMaybe(purpleAirUrl);
   const features = json?.features || [];
@@ -148,10 +156,16 @@ window.getStationValue = function(station, param) { return dataByStation[station
 window.getStationTime = function(station, param) { return dataByStation[station]?.find(r => r.ParameterName === param)?.DisplayDate ?? null; };
 
 window.dataReady = (async () => {
-  const [stations, purple, forecast] = await Promise.all([loadStations(), loadPurpleAir(), loadForecast()]);
+  const [stations, purple, forecast, currentBlend] = await Promise.all([
+    loadStations(),
+    loadPurpleAir(),
+    loadForecast(),
+    loadCurrentBlend()
+  ]);
   window.AppData.stations = stations;
   window.AppData.purpleair = purple;
   window.AppData.forecast = forecast;
+  window.AppData.currentBlend = currentBlend;
   return window.AppData;
 })();
 window.AppData.ready = window.dataReady;
