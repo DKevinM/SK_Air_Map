@@ -51,7 +51,7 @@ window.handleMapClick = async function(lat, lng, map) {
   
   let weatherData = null;
   let weatherHtml = "";
-
+  let forecastHtml = "";
 
   // ---- 1) Marker at clicked point ----
 
