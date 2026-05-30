@@ -1,32 +1,3 @@
-// =====================================================
-// ECCC AQHI FORECAST LOOKUP
-// =====================================================
-
-window.aqhiForecastLookup = {};
-fetch(
-  "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/aqhi_forecasts.geojson"
-)
-.then(r => r.json())
-.then(data => {
-  data.features.forEach(f => {
-    const p = f.properties || {};
-    if(!p.name) return;
-    window.aqhiForecastLookup[
-      p.name.toUpperCase()
-    ] = p;
-  });
-  console.log(
-    "Loaded ECCC AQHI forecasts:",
-    Object.keys(window.aqhiForecastLookup).length
-  );
-})
-.catch(err => {
-  console.error(
-    "AQHI forecast lookup failed:",
-    err
-  );
-});
-
 
 window.handleMapClick = async function(lat, lng, map) {
 
@@ -106,23 +77,7 @@ window.handleMapClick = async function(lat, lng, map) {
 
 
   
-  // =====================================================
-  // CLOSEST ECCC FORECAST
-  // =====================================================
-  
-  let closestForecast = null;  
-  if(
-    closestStations &&
-    closestStations.length > 0
-  ){
-    const key =
-      closestStations[0].station.toUpperCase();
-    closestForecast =
-      window.aqhiForecastLookup[key] || null;  
-  }
-  
-
-  
+ 
 
   // ==============================
   // UPDATE LEFT AQHI PANEL
