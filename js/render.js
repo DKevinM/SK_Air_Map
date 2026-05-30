@@ -17,14 +17,30 @@ window.renderMap = async function(){
     window.layers.stations.addLayer(marker);
     if(Number.isFinite(aqhiVal)) window.layers.stations.addLayer(L.marker([st.lat, st.lon], {icon:L.divIcon({className:"aqhi-label", html: aqhiVal>10?"10+":Math.round(aqhiVal), iconSize:[30,30], iconAnchor:[15,15]}), interactive:false}));
   });
-
-  (window.AppData.forecast || []).forEach(fc => {
-    if(!Number.isFinite(fc.lat) || !Number.isFinite(fc.lon) || !Number.isFinite(Number(fc.aqhi))) return;
-    const aq = Number(fc.aqhi);
-    const marker = L.circleMarker([fc.lat, fc.lon], {radius:14, fillColor:window.getAQHIColor(aq), color:"#000", weight:2, dashArray:"4,3", fillOpacity:0.65})
-      .bindPopup(`<strong>${fc.stationName}</strong><br>Forecast AQHI: <b>${aq>10?"10+":Math.round(aq)}</b><br><small>SK forecast layer</small>`);
-    window.layers.forecast.addLayer(marker);
-    window.layers.forecast.addLayer(L.marker([fc.lat, fc.lon], {icon:L.divIcon({className:"aqhi-label", html: aq>10?"10+":Math.round(aq), iconSize:[30,30], iconAnchor:[15,15]}), interactive:false}));
+  
+  (window.AppData.forecast || []).forEach(fc => {  
+      if(
+        !fc.geometry ||
+        !fc.properties ||
+        !Number.isFinite(Number(fc.properties.AQHI))
+      ) return;
+      const aq = Number(fc.properties.AQHI);  
+      const layer = L.geoJSON(fc, {  
+        style: {
+          fillColor: window.getAQHIColor(aq),
+          fillOpacity: 0.45,
+          color: "#333",
+          weight: 0.5
+        },  
+        onEachFeature: function(feature, lyr){  
+          lyr.bindPopup(`
+            <strong>SK Forecast AQHI</strong><br>
+            AQHI: <b>${aq > 10 ? "10+" : Math.round(aq)}</b><br>
+            <small>${feature.properties.category || ""}</small>
+          `);  
+        }  
+      });  
+      window.layers.forecast.addLayer(layer);  
   });
   console.log("SK LiveMap rendered", window.AppData.stations.length, "stations", window.AppData.purpleair.length, "PurpleAir", window.AppData.forecast.length, "forecasts");
 };
