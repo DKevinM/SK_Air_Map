@@ -134,9 +134,26 @@ window.initMap = function(){
   
             const p = feature.properties || {};
   
+            const rawAQHI = Number(p.AQHI);
+            
+            let displayAQHI = "N/A";
+            
+            if (Number.isFinite(rawAQHI)) {
+            
+              const isForecast =
+                targetLayer === window.layers.sk_forecast ||
+                targetLayer === window.layers.regina_forecast;
+            
+              displayAQHI = isForecast
+                ? rawAQHI.toFixed(1)
+                : Math.round(rawAQHI);
+            
+              if (displayAQHI > 10) displayAQHI = "10+";
+            }
+            
             layer.bindTooltip(
               `
-              AQHI: ${p.AQHI ?? "N/A"}<br>
+              AQHI: ${displayAQHI}<br>
               ${p.category ?? ""}
               `
             );
