@@ -115,17 +115,28 @@ async function loadStations() {
 }
 
 async function loadForecast() {
-  const f = await fetchJsonMaybe(forecastUrl);
-  const items = Array.isArray(f) ? f : (f?.features || []);
-  return items.map(x => {
-    const p = x.properties || x;
-    const station = p.station || p.name || p.StationName;
-    if (!station) return null;
-    const aqhi = num(p.AQHI_forecast ?? p.aqhi_forecast ?? p.forecast_aqhi ?? p.AQHI_3h ?? p.AQHI ?? p.aqhi);
-    const lat = num(p.lat ?? p.Latitude ?? x.geometry?.coordinates?.[1]);
-    const lon = num(p.lon ?? p.Longitude ?? x.geometry?.coordinates?.[0]);
-    return { stationName: station, lat, lon, aqhi, raw: p };
-  }).filter(Boolean);
+  const geo = await fetchJsonMaybe(forecastUrl);
+  const features = geo?.features || [];
+  return features.map(f => {
+    const p = f.properties || {};
+    const [lon, lat] = f.geometry?.coordinates || [];
+    return {
+      stationName: p.name,
+      lat: Number(lat),
+      lon: Number(lon),
+      aqhi: Number(p.p1_aqhi),
+      p1: p.p1_aqhi,
+      p2: p.p2_aqhi,
+      p3: p.p3_aqhi,
+      p4: p.p4_aqhi,
+      raw: p
+    };
+
+  }).filter(f =>
+    f.stationName &&
+    Number.isFinite(f.lat) &&
+    Number.isFinite(f.lon)
+  );
 }
 
 async function loadCurrentBlend() {
