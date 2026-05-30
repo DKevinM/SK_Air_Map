@@ -47,7 +47,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_now.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_now.png",
+      "https://dkevinm.github.io/AB_datapull/data/output/firesmoke_now.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -55,7 +55,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_6h.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_6h.png",
+      "https://dkevinm.github.io/AB_datapull/data/output/firesmoke_6h.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -63,7 +63,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_12h.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_12h.png",
+      "https://dkevinm.github.io/AB_datapull/data/output/firesmoke_12h.png",
       smokeBounds,
       { opacity: 0.55 }
     )
@@ -71,7 +71,7 @@ window.initMap = function(){
   
   window.layers.firesmoke_24h.addLayer(
     L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_24h.png",
+      "https://dkevinm.github.io/AB_datapull/data/output/firesmoke_24h.png",
       smokeBounds,
       { opacity: 0.55 }
     )
