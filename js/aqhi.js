@@ -37,7 +37,9 @@ window.updateAQHIFromClick = async function(lat,lng){
   if(!closest) return;
   const fc = forecasts.find(f => String(f.stationName).toUpperCase() === String(closest.stationName).toUpperCase()) || null;
   window.aqhiData.current = { station: closest.stationName, value: closest.aqhi, time: closest.rows?.[0]?.ReadingDate };
-  window.aqhiData.forecast = { aqhi3: fc?.aqhi ?? null };
+  window.aqhiData.forecast = {
+    aqhi3: fc?.p1 ?? null
+  };
   const existingWeather = document.getElementById("panel-weather")?.innerHTML;
   drawAQHIPanel();
   if(existingWeather){ const w=document.getElementById("panel-weather"); if(w) w.innerHTML=existingWeather; }
