@@ -82,22 +82,19 @@ window.initMap = function(){
   // =====================================================
   
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_current_blend.geojson",
+    "https://dkevinm.github.io/SK_datapull/data/sk_current_blend.geojson",
     window.layers.sk_current
   );
-  
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_forecast_3h_blend.geojson",
+    "https://dkevinm.github.io/SK_datapull/data/sk_forecast_3h_blend.geojson",
     window.layers.sk_forecast
   );
-  
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/regina_current_blend.geojson",
+    "https://dkevinm.github.io/SK_datapull/data/regina_current_blend.geojson",
     window.layers.regina_current
   );
-  
   loadAQHIGrid(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/regina_forecast_3h_blend.geojson",
+    "https://dkevinm.github.io/SK_datapull/data/regina_forecast_3h_blend.geojson",
     window.layers.regina_forecast
   );
 
@@ -112,16 +109,16 @@ window.initMap = function(){
   
     return {
       fillColor: feature.properties.color || "#999999",
-      weight: 0,
-      color: "none",
-      fillOpacity: 0.45
+      fillOpacity: 0.75,
+      weight: 0.3,
+      color: "#333"
     };
   
   }
   
   function loadAQHIGrid(url, targetLayer){
   
-    fetch(url + "?v=")
+    fetch(url + "?v=" + Date.now())
   
       .then(r => r.json())
   
