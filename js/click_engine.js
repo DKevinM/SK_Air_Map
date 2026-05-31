@@ -187,6 +187,7 @@ window.handleMapClick = async function(lat, lng, map) {
       nextEl.textContent =
         closestForecast.p4_aqhi ?? "—";
     }
+  }
 
   
   // ---- 3) REVERSE GEOCODE ----
