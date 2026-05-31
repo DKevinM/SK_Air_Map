@@ -43,22 +43,22 @@ window.initMap = function(){
 
   
   loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_now.geojson",
+    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_now.geojson",
     window.layers.firesmoke_now
   );
   
   loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_6h.geojson",
+    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_6h.geojson",
     window.layers.firesmoke_6h
   );
   
   loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_12h.geojson",
+    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_12h.geojson",
     window.layers.firesmoke_12h
   );
   
   loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_24h.geojson",
+    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_24h.geojson",
     window.layers.firesmoke_24h
   );
 
