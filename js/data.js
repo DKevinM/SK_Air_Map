@@ -177,7 +177,8 @@ window.dataReady = (async () => {
   ]);
   window.AppData.stations = stations;
   window.AppData.purpleair = purple;
-  window.AppData.forecast = forecast;
+  window.AppData.forecasts = forecast;
+  window.AppData.forecast = forecast;  
   window.AppData.currentBlend = currentBlend;
   return window.AppData;
 })();
