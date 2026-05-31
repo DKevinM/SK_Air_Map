@@ -43,6 +43,48 @@ window.handleMapClick = async function(lat, lng, map) {
     .slice(0,2);
 
 
+  // =====================================================
+  // MATCH ECCC FORECAST TO CLOSEST STATION
+  // =====================================================
+  
+  let closestForecast = null;
+  
+  try {
+  
+    const forecasts = window.AppData?.forecasts || [];
+  
+    if (closestStations.length > 0) {
+  
+      const stationName = String(
+        closestStations[0].station || ""
+      ).toLowerCase();
+  
+      closestForecast = forecasts.find(f => {
+  
+        const forecastName = String(
+          f.station ||
+          f.stationName ||
+          f.name ||
+          ""
+        ).toLowerCase();
+  
+
+        return forecastName.includes(stationName)
+            || stationName.includes(forecastName);        
+  
+      });
+  
+    }
+  
+    console.log("Matched forecast:", closestForecast);
+  
+  } catch (e) {
+  
+    console.warn("Forecast station match failed:", e);
+  
+  }
+    
+
   const marker = L.marker([lat, lng]);
   if (window.layers?.click) {
     window.layers.click.addLayer(marker);
@@ -99,7 +141,39 @@ window.handleMapClick = async function(lat, lng, map) {
     }
   }
 
-
+  // =====================================================
+  // UPDATE ECCC FORECAST BOXES
+  // =====================================================
+  
+  if (closestForecast) {
+  
+    console.log("Matched ECCC forecast:", closestForecast);
+  
+    const todayEl = document.getElementById("aqhi-today");
+    const tonightEl = document.getElementById("aqhi-tonight");
+    const tomorrowEl = document.getElementById("aqhi-tomorrow");
+    const nextEl = document.getElementById("aqhi-next");
+  
+    if (todayEl) {
+      todayEl.textContent =
+        closestForecast.p1_aqhi ?? "—";
+    }
+  
+    if (tonightEl) {
+      tonightEl.textContent =
+        closestForecast.p2_aqhi ?? "—";
+    }
+  
+    if (tomorrowEl) {
+      tomorrowEl.textContent =
+        closestForecast.p3_aqhi ?? "—";
+    }
+  
+    if (nextEl) {
+      nextEl.textContent =
+        closestForecast.p4_aqhi ?? "—";
+    }
+  }
 
 
   
@@ -175,7 +249,7 @@ window.handleMapClick = async function(lat, lng, map) {
   `).join("");
   
   const stTable = `
-    <table style="width:100%; font-size:18px;">
+    <table style="width:100%; font-size:12px;">
       <thead>
         <tr>
           <th align="left">Station</th>
@@ -221,75 +295,8 @@ window.handleMapClick = async function(lat, lng, map) {
     </table>
   `;
 
-  
-  // =====================================================
-  // ECCC AQHI FORECAST HTML
-  // =====================================================
-  
-  let forecastHtml = "";
-  
-  if(closestForecast){
-  
-    forecastHtml = `
-  
-      <div style="
-        margin-top:12px;
-        padding-top:8px;
-        border-top:1px solid #ccc;
-      ">
-  
-        <div style="
-          font-weight:700;
-          font-size:13px;
-          margin-bottom:6px;
-        ">
-          ECCC AQHI Forecast
-        </div>
-  
-        <table style="
-          width:100%;
-          font-size:12px;
-        ">
-  
-          <tr>
-            <td>${closestForecast.p1_label ?? "Period 1"}</td>
-            <td style="text-align:right;">
-              ${closestForecast.p1_aqhi ?? "—"}
-            </td>
-          </tr>
-  
-          <tr>
-            <td>${closestForecast.p2_label ?? "Period 2"}</td>
-            <td style="text-align:right;">
-              ${closestForecast.p2_aqhi ?? "—"}
-            </td>
-          </tr>
-  
-          <tr>
-            <td>${closestForecast.p3_label ?? "Period 3"}</td>
-            <td style="text-align:right;">
-              ${closestForecast.p3_aqhi ?? "—"}
-            </td>
-          </tr>
-  
-          <tr>
-            <td>${closestForecast.p4_label ?? "Period 4"}</td>
-            <td style="text-align:right;">
-              ${closestForecast.p4_aqhi ?? "—"}
-            </td>
-          </tr>
-  
-        </table>
-  
-      </div>
-  
-    `;
-  }
 
-
-
-
-
+  
 
 
 
@@ -307,7 +314,7 @@ window.handleMapClick = async function(lat, lng, map) {
         AQHI stations (2)
       </div>
   
-      <div style="font-size:18px; font-weight:800;">
+      <div style="font-size:12px; font-weight:700;">
         ${stTable}
       </div>
   
@@ -321,7 +328,6 @@ window.handleMapClick = async function(lat, lng, map) {
       </div>
   
       ${weatherHtml}
-      ${forecastHtml}
   
     </div>
   `;
