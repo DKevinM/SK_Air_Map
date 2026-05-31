@@ -49,6 +49,10 @@ html, body {
 }
 
 
+
+
+
+
 /* RIGHT (placeholder for future buttons if needed) */
 #header-right {
   width: 150px; /* keeps spacing balanced */
@@ -96,27 +100,6 @@ html, body {
     width: 100%;
     font-size: 13px;
     margin-bottom: 4px;
-  }
-
-  #panel {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  
-    width: 100%;
-    height: 30vh;
-    max-height: 30vh;
-  
-    overflow-y: auto;
-  
-    background: rgba(255,255,255,0.96);
-    backdrop-filter: blur(6px);
-  
-    z-index: 900;
-  
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
   }
 
   #map {
@@ -305,6 +288,35 @@ html, body {
 #panel * {
   font-size: 12px;
 }
+
+#forecast-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.forecast-box {
+  min-width: 0;
+  padding: 6px;
+  border-radius: 8px;
+  background: #f3f3f3;
+  text-align: center;
+}
+
+.forecast-label {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.forecast-value {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+
+
 
 /* Legend */
 .legend img {
