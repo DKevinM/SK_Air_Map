@@ -178,11 +178,11 @@ window.initMap = function(){
     stations:"Stations",
     forecast:"SK AQHI Forecast",
 
-    sk_current:"SK AQHI Current Grid",
-    sk_forecast:"SK AQHI Forecast Grid",
+    sk_current:"SK AQHI Current",
+    sk_forecast:"SK AQHI 3hr Forecast",
     
     regina_current:"Regina AQHI Current",
-    regina_forecast:"Regina AQHI Forecast",
+    regina_forecast:"Regina AQHI 3hr Forecast",
     
     purpleair:"Sensors (PurpleAir)",
   
