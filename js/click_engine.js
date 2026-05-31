@@ -172,23 +172,21 @@ window.handleMapClick = async function(lat, lng, map) {
       todayEl.textContent =
         closestForecast.p1_aqhi ?? "—";
     }
-  
+    
     if (tonightEl) {
       tonightEl.textContent =
         closestForecast.p2_aqhi ?? "—";
     }
-  
+    
     if (tomorrowEl) {
       tomorrowEl.textContent =
         closestForecast.p3_aqhi ?? "—";
     }
-  
+    
     if (nextEl) {
       nextEl.textContent =
         closestForecast.p4_aqhi ?? "—";
     }
-  }
-
 
   
   // ---- 3) REVERSE GEOCODE ----
