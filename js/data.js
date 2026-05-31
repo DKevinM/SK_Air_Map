@@ -1,6 +1,6 @@
 // SK data adapter for LiveMap-style frontend
 window.dataByStation = Object.create(null);
-window.AppData = { stations: [], purpleair: [], forecast: [], ready: null };
+window.AppData = { stations: [], purpleair: [], forecasts: [], ready: null };
 window.getColor = window.getAQHIColor = function (val) {
   if (val === null || val === undefined) return "#D3D3D3";
   const s = String(val).trim();
