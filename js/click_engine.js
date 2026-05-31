@@ -77,6 +77,7 @@ window.handleMapClick = async function(lat, lng, map) {
     }
   
     console.log("Matched forecast:", closestForecast);
+    console.log("Forecast keys:", Object.keys(closestForecast || {}));
   
   } catch (e) {
   
