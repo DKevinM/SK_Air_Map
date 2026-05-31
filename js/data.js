@@ -117,21 +117,31 @@ async function loadStations() {
 async function loadForecast() {
   const geo = await fetchJsonMaybe(forecastUrl);
   const features = geo?.features || [];
+
   return features.map(f => {
     const p = f.properties || {};
     const [lon, lat] = f.geometry?.coordinates || [];
+
     return {
       stationName: p.name,
+      name: p.name,
       lat: Number(lat),
       lon: Number(lon),
-      aqhi: Number(p.p1_aqhi),
-      p1: p.p1_aqhi,
-      p2: p.p2_aqhi,
-      p3: p.p3_aqhi,
-      p4: p.p4_aqhi,
+
+      p1_label: p.p1_label ?? p.period1_label ?? p.today_label ?? "Today",
+      p1_aqhi: p.p1_aqhi ?? p.period1_aqhi ?? p.today,
+      
+      p2_label: p.p2_label ?? p.period2_label ?? p.tonight_label ?? "Tonight",
+      p2_aqhi: p.p2_aqhi ?? p.period2_aqhi ?? p.tonight,
+      
+      p3_label: p.p3_label ?? p.period3_label ?? p.tomorrow_label ?? "Tomorrow",
+      p3_aqhi: p.p3_aqhi ?? p.period3_aqhi ?? p.tomorrow,
+      
+      p4_label: p.p4_label ?? p.period4_label ?? p.tomorrow_night_label ?? "Tomorrow Night",
+      p4_aqhi: p.p4_aqhi ?? p.period4_aqhi ?? p.tomorrow_night,
+
       raw: p
     };
-
   }).filter(f =>
     f.stationName &&
     Number.isFinite(f.lat) &&
