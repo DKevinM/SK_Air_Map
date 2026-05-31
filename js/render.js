@@ -17,6 +17,56 @@ window.renderMap = async function(){
     window.layers.stations.addLayer(marker);
     if(Number.isFinite(aqhiVal)) window.layers.stations.addLayer(L.marker([st.lat, st.lon], {icon:L.divIcon({className:"aqhi-label", html: aqhiVal>10?"10+":Math.round(aqhiVal), iconSize:[30,30], iconAnchor:[15,15]}), interactive:false}));
   });
+
+
+
+
+function loadFireSmokeLayer(url, layer) {
+  fetch(url)
+    .then(r => r.json())
+    .then(geo => {
+      layer.clearLayers();
+
+      L.geoJSON(geo, {
+        style: f => ({
+          fillColor: getSmokeColor(f.properties.pm25),
+          fillOpacity: 0.4,
+          color: "none",
+          weight: 0
+        }),
+
+        onEachFeature: function (feature, lyr) {
+          const pm = Number(feature.properties?.pm25);
+          const ts = feature.properties?.timestamp || "";
+
+          lyr.bindTooltip(
+            `PM2.5: ${isFinite(pm) ? pm.toFixed(1) : "—"} µg/m³` +
+            (ts ? `<br>${ts}` : ""),
+            {
+              sticky: true
+            }
+          );
+        }
+      }).addTo(layer);
+
+      console.log("Loaded FireSmoke:", url);
+    })
+    .catch(e => console.error("FireSmoke load failed:", e));
+}
+
+
+function getSmokeColor(pm) {
+  if (pm < 5) return "#009966";
+  if (pm < 10) return "#ffde33";
+  if (pm < 25) return "#ff9933";
+  if (pm < 50) return "#cc0033";
+  return "#660000";
+}
+
+  
+
+  
+
   
   (window.AppData.forecast || []).forEach(fc => {  
       if(
