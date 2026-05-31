@@ -150,44 +150,57 @@ window.handleMapClick = async function(lat, lng, map) {
     }
   }
 
+
   // =====================================================
   // UPDATE ECCC FORECAST BOXES
   // =====================================================
-
-  console.log(JSON.stringify(closestForecast, null, 2));
+  
+  function setForecastBox(id, value, label) {
+    let el = document.getElementById(id);
+  
+    // If the value element does not exist, create the whole forecast row once
+    if (!el) {
+      const updatedEl = document.getElementById("aqhi-updated");
+  
+      if (updatedEl && !document.getElementById("forecast-row")) {
+        updatedEl.insertAdjacentHTML("afterend", `
+          <div id="forecast-row">
+            <div class="forecast-box">
+              <div class="forecast-label" id="aqhi-today-label">Today</div>
+              <div class="forecast-value" id="aqhi-today">—</div>
+            </div>
+            <div class="forecast-box">
+              <div class="forecast-label" id="aqhi-tonight-label">Tonight</div>
+              <div class="forecast-value" id="aqhi-tonight">—</div>
+            </div>
+            <div class="forecast-box">
+              <div class="forecast-label" id="aqhi-tomorrow-label">Tomorrow</div>
+              <div class="forecast-value" id="aqhi-tomorrow">—</div>
+            </div>
+            <div class="forecast-box">
+              <div class="forecast-label" id="aqhi-next-label">Tomorrow Night</div>
+              <div class="forecast-value" id="aqhi-next">—</div>
+            </div>
+          </div>
+        `);
+      }
+  
+      el = document.getElementById(id);
+    }
+  
+    if (el) el.textContent = value ?? "—";
+  
+    const labelEl = document.getElementById(`${id}-label`);
+    if (labelEl && label) labelEl.textContent = label;
+  }
   
   if (closestForecast) {
-  
-    console.log("Matched ECCC forecast:", closestForecast);
-  
-    const todayEl = document.getElementById("aqhi-today");
-    const tonightEl = document.getElementById("aqhi-tonight");
-    const tomorrowEl = document.getElementById("aqhi-tomorrow");
-    const nextEl = document.getElementById("aqhi-next");
-
-    console.log(closestForecast);
-
-    
-    if (todayEl) {
-      todayEl.textContent =
-        closestForecast.p1_aqhi ?? "—";
-    }
-    
-    if (tonightEl) {
-      tonightEl.textContent =
-        closestForecast.p2_aqhi ?? "—";
-    }
-    
-    if (tomorrowEl) {
-      tomorrowEl.textContent =
-        closestForecast.p3_aqhi ?? "—";
-    }
-    
-    if (nextEl) {
-      nextEl.textContent =
-        closestForecast.p4_aqhi ?? "—";
-    }
+    setForecastBox("aqhi-today", closestForecast.p1_aqhi, closestForecast.p1_label);
+    setForecastBox("aqhi-tonight", closestForecast.p2_aqhi, closestForecast.p2_label);
+    setForecastBox("aqhi-tomorrow", closestForecast.p3_aqhi, closestForecast.p3_label);
+    setForecastBox("aqhi-next", closestForecast.p4_aqhi, closestForecast.p4_label);
   }
+  
 
   
   // ---- 3) REVERSE GEOCODE ----
