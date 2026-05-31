@@ -32,7 +32,7 @@ window.initMap = function(){
     firesmoke_now: L.layerGroup(),
     firesmoke_6h: L.layerGroup(),
     firesmoke_12h: L.layerGroup(),
-    firesmoke_24h: L.layerGroup()
+    firesmoke_24h: L.layerGroup(),
   
   };
   window.layers.weather_radar.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"RADAR_1KM_RRAI",format:"image/png",transparent:true,opacity:0.85}));
@@ -40,43 +40,105 @@ window.initMap = function(){
   window.layers.weather_lightning.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"Lightning_2.5km_Density",format:"image/png",transparent:true,opacity:0.85}));
   window.layers.weather_thunderstorm.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"GDPS-WEonG_15km_Thunderstorm-Prob.3h",format:"image/png",transparent:true,opacity:0.75}));
 
-  const smokeBounds = [
-    [42, -130],
-    [65, -90]
-  ];
+
   
-  window.layers.firesmoke_now.addLayer(
-    L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_now.png",
-      smokeBounds,
-      { opacity: 0.55 }
-    )
+  loadFireSmokeLayer(
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_now.geojson",
+    window.layers.firesmoke_now
   );
   
-  window.layers.firesmoke_6h.addLayer(
-    L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_6h.png",
-      smokeBounds,
-      { opacity: 0.55 }
-    )
+  loadFireSmokeLayer(
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_6h.geojson",
+    window.layers.firesmoke_6h
   );
   
-  window.layers.firesmoke_12h.addLayer(
-    L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_12h.png",
-      smokeBounds,
-      { opacity: 0.55 }
-    )
+  loadFireSmokeLayer(
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_12h.geojson",
+    window.layers.firesmoke_12h
   );
   
-  window.layers.firesmoke_24h.addLayer(
-    L.imageOverlay(
-      "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_24h.png",
-      smokeBounds,
-      { opacity: 0.55 }
-    )
+  loadFireSmokeLayer(
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/output/firesmoke_24h.geojson",
+    window.layers.firesmoke_24h
   );
 
+
+
+  function getSmokeColor(pm) {
+  
+    if (pm < 5) return "#009966";
+    if (pm < 10) return "#ffde33";
+    if (pm < 25) return "#ff9933";
+    if (pm < 50) return "#cc0033";
+  
+    return "#660000";
+  
+  }
+  
+  function loadFireSmokeLayer(url, layer){
+  
+    fetch(url + "?v=" + Date.now())
+  
+      .then(r => r.json())
+  
+      .then(geo => {
+  
+        layer.clearLayers();
+  
+        L.geoJSON(geo, {
+  
+          style: f => ({
+  
+            fillColor: getSmokeColor(
+              Number(f.properties?.pm25)
+            ),
+  
+            fillOpacity: 0.4,
+  
+            color: "none",
+  
+            weight: 0
+  
+          }),
+  
+          onEachFeature: function(feature, lyr){
+  
+            const pm = Number(
+              feature.properties?.pm25
+            );
+  
+            lyr.bindTooltip(
+              `PM2.5: ${
+                isFinite(pm)
+                  ? pm.toFixed(1)
+                  : "—"
+              } µg/m³`
+            );
+  
+          }
+  
+        }).addTo(layer);
+  
+        console.log("Loaded FireSmoke:", url);
+  
+      })
+  
+      .catch(err => {
+  
+        console.error(
+          "FireSmoke failed:",
+          url,
+          err
+        );
+  
+      });
+  
+  }  
+
+
+
+
+  
   // =====================================================
   // LOAD AQHI GRID OVERLAYS
   // =====================================================
