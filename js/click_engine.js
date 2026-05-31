@@ -57,30 +57,32 @@ window.handleMapClick = async function(lat, lng, map) {
   
       const stationName = String(
         closestStations[0].station || ""
-      ).toLowerCase();
+      )
+      .toLowerCase()
+      .trim();
 
-      console.log("Station name:", stationName);
-      console.log("Forecast list:", forecasts);
       
       closestForecast = forecasts.find(f => {
   
+
         const forecastName = String(
           f.station ||
           f.stationName ||
           f.name ||
           ""
-        ).toLowerCase();
-  
+        )
+        .toLowerCase()
+        .trim();
+          
 
-        return forecastName.includes(stationName)
-            || stationName.includes(forecastName);        
+        return forecastName.includes(stationName);  
   
       });
   
     }
   
     console.log("Matched forecast:", closestForecast);
-    console.log("Forecast keys:", Object.keys(closestForecast || {}));
+
   
   } catch (e) {
   
@@ -157,7 +159,9 @@ window.handleMapClick = async function(lat, lng, map) {
     const tonightEl = document.getElementById("aqhi-tonight");
     const tomorrowEl = document.getElementById("aqhi-tomorrow");
     const nextEl = document.getElementById("aqhi-next");
-  
+
+    console.log(closestForecast);
+    
     if (todayEl) {
       todayEl.textContent =
         closestForecast.p1_aqhi ?? "—";
