@@ -116,9 +116,9 @@ window.updateAQHIFromClick = async function(lat,lng){
   ) || null;
   window.aqhiData.current = { station: closest.stationName, value: closest.aqhi, time: closest.rows?.[0]?.ReadingDate };
   window.aqhiData.forecast = {
-    p1: fc?.p1 ?? null,
-    p2: fc?.p2 ?? null,
-    p3: fc?.p3 ?? null
+    p1: fc?.p1_aqhi ?? null,
+    p2: fc?.p2_aqhi ?? null,
+    p3: fc?.p3_aqhi ?? null
   };
   const existingWeather = document.getElementById("panel-weather")?.innerHTML;
   drawAQHIPanel();
