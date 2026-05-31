@@ -58,7 +58,10 @@ window.handleMapClick = async function(lat, lng, map) {
       const stationName = String(
         closestStations[0].station || ""
       ).toLowerCase();
-  
+
+      console.log("Station name:", stationName);
+      console.log("Forecast list:", forecasts);
+      
       closestForecast = forecasts.find(f => {
   
         const forecastName = String(
