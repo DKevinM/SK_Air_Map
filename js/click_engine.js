@@ -161,6 +161,7 @@ window.handleMapClick = async function(lat, lng, map) {
     const nextEl = document.getElementById("aqhi-next");
 
     console.log(closestForecast);
+    console.log(JSON.stringify(closestForecast, null, 2));
     
     if (todayEl) {
       todayEl.textContent =
