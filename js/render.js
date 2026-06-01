@@ -3,7 +3,6 @@ window.renderMap = async function(){
   await window.AppData.ready;
   const map = window.map;
   window.layers.stations.clearLayers();
-  window.layers.forecast.clearLayers();
   if(window.renderPurpleAir) await window.renderPurpleAir();
 
   (window.AppData.stations || []).forEach(st => {
