@@ -55,16 +55,15 @@ function loadFireSmokeLayer(url, layer) {
 
 
 function getSmokeColor(pm) {
-  if (pm < 5) return "#009966";
-  if (pm < 10) return "#ffde33";
-  if (pm < 25) return "#ff9933";
-  if (pm < 50) return "#cc0033";
-  return "#660000";
+  if (pm < 1)   return "#f2e8b3";
+  if (pm < 10)  return "#e8c95c";
+  if (pm < 28)  return "#f5a623";
+  if (pm < 60)  return "#f57c00";
+  if (pm < 120) return "#cc5500";
+  return "#662200";
 }
 
-  
-
-  
+ 
 
   
   (window.AppData.forecast || []).forEach(fc => {  
