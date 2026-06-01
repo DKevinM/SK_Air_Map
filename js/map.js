@@ -16,7 +16,6 @@ window.initMap = function(){
     stations: L.layerGroup().addTo(map),
     click: L.layerGroup().addTo(map),
     purpleair: L.layerGroup().addTo(map),
-    forecast: L.layerGroup(),
 
     sk_current: L.layerGroup().addTo(map),
     sk_forecast: L.layerGroup(),
@@ -238,7 +237,6 @@ window.initMap = function(){
   const labels = {
   
     stations:"Stations",
-    forecast:"SK AQHI Forecast",
 
     sk_current:"SK AQHI Current",
     sk_forecast:"SK AQHI 3hr Forecast",
