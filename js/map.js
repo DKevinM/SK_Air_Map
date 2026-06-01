@@ -42,69 +42,60 @@ window.initMap = function(){
   // THUNDERSTORM OUTLOOK (ECCC GEOJSON)
   // =====================================================
   
-  fetch(
-    "https://api.weather.gc.ca/collections/thunderstorm_outlook/items?f=json"
-  )
+  fetch("https://api.weather.gc.ca/collections/thunderstorm_outlook/items?f=json")
+    .then(r => r.json())
+    .then(data => {
   
-  .then(r => r.json())
+      const thunder = L.geoJSON(data, {
   
-  .then(data => {
+        filter: function(feature) {
+          return true;
+        },
   
-    L.geoJSON(data, {
-    
-      filter: function(feature) {
-    
-        const p = feature.properties || {};
-    
-        const rating =
-          (
-            p.outlook_rating ||
-            p.severity ||
-            ""
-          ).toLowerCase();
-    
-        return rating.includes("severe");
-    
-      },
-    
-      style: function(feature) {
-    
-        return {
-    
-          color: "#ff0000",
-          fillColor: "#ff0000",
-          fillOpacity: 0.05,
-          weight: 1,
-          dashArray: "4 4"
-    
-        };
-    
-      },
-    
-      onEachFeature: function(feature, layer) {
-    
-        const p = feature.properties || {};
-    
-        layer.bindPopup(`
-          <b>Severe Thunderstorm Outlook</b><br>
-          Issued: ${p.publication_datetime || "-"}<br>
-          Expires: ${p.expiration_datetime || "-"}
-        `);
-    
-      }
-    
-    }).addTo(window.layers.weather_thunderstorm);
+        style: function(feature) {
   
-  })
+          const p = feature.properties || {};
+          const type = (p.product_type || "").toUpperCase();
   
-  .catch(err => {
+          let color = "#ffff00";
   
-    console.error(
-      "Thunderstorm layer failed:",
-      err
-    );
+          if (type.includes("PASPC")) color = "#ff8800";
+          else if (type.includes("PSPC")) color = "#ff0000";
+          else if (type.includes("OSPC")) color = "#ffcc00";
+          else if (type.includes("ASPC")) color = "#ffaa00";
   
-  });
+          return {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.08,
+            weight: 1.5,
+            dashArray: "4 4"
+          };
+        },
+  
+        onEachFeature: function(feature, layer) {
+  
+          const p = feature.properties || {};
+  
+          layer.bindTooltip(`
+            <b>Thunderstorm Outlook</b><br>
+            Outlook Region: ${p.product_sub_type || "-"}<br>
+            Issued: ${p.publication_datetime || "-"}<br>
+            Expires: ${p.expiration_datetime || "-"}
+          `, {
+            sticky: true,
+            direction: "top"
+          });
+        }
+  
+      });
+  
+      window.layers.weather_thunderstorm.addLayer(thunder);
+  
+    })
+    .catch(err => {
+      console.error("Thunderstorm outlook failed:", err);
+    });
 
   
   loadFireSmokeLayer(
@@ -320,7 +311,7 @@ window.initMap = function(){
     weather_radar:"Radar",
     weather_wind_u:"Winds",
     weather_lightning:"Lightning",
-    weather_thunderstorm:"Thunderstorm (3h)"
+    weather_thunderstorm:"Thunderstorm Outlook"
   
   };
 
