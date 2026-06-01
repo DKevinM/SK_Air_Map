@@ -51,53 +51,48 @@ window.initMap = function(){
   .then(data => {
   
     L.geoJSON(data, {
-  
-      style: function(feature) {
-  
+    
+      filter: function(feature) {
+    
         const p = feature.properties || {};
-  
+    
         const rating =
-          p.outlook_rating ||
-          p.severity ||
-          "";
-  
-        let color = "#ffff00";
-  
-        if (
-          rating.toLowerCase().includes("severe")
-        ) {
-          color = "#ff0000";
-        }
-        else if (
-          rating.toLowerCase().includes("moderate")
-        ) {
-          color = "#ff8800";
-        }
-  
-        return {
-  
-          color: color,
-          fillColor: color,
-          fillOpacity: 0.25,
-          weight: 2
-  
-        };
-  
+          (
+            p.outlook_rating ||
+            p.severity ||
+            ""
+          ).toLowerCase();
+    
+        return rating.includes("severe");
+    
       },
-  
+    
+      style: function(feature) {
+    
+        return {
+    
+          color: "#ff0000",
+          fillColor: "#ff0000",
+          fillOpacity: 0.05,
+          weight: 1,
+          dashArray: "4 4"
+    
+        };
+    
+      },
+    
       onEachFeature: function(feature, layer) {
-  
+    
         const p = feature.properties || {};
-  
+    
         layer.bindPopup(`
-          <b>Thunderstorm Outlook</b><br>
-          Rating: ${p.outlook_rating || "-"}<br>
+          <b>Severe Thunderstorm Outlook</b><br>
           Issued: ${p.publication_datetime || "-"}<br>
           Expires: ${p.expiration_datetime || "-"}
         `);
-  
+    
       }
-  
+    
     }).addTo(window.layers.weather_thunderstorm);
   
   })
