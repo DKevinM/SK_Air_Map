@@ -37,8 +37,79 @@ window.initMap = function(){
   window.layers.weather_radar.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"RADAR_1KM_RRAI",format:"image/png",transparent:true,opacity:0.85}));
   window.layers.weather_wind_u.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"HRDPS.CONTINENTAL_UU",format:"image/png",transparent:true,opacity:0.7}));
   window.layers.weather_lightning.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"Lightning_2.5km_Density",format:"image/png",transparent:true,opacity:0.85}));
-  window.layers.weather_thunderstorm.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"GDPS-WEonG_15km_Thunderstorm-Prob.3h",format:"image/png",transparent:true,opacity:0.75}));
 
+  // =====================================================
+  // THUNDERSTORM OUTLOOK (ECCC GEOJSON)
+  // =====================================================
+  
+  fetch(
+    "https://api.weather.gc.ca/collections/thunderstorm_outlook/items?f=json"
+  )
+  
+  .then(r => r.json())
+  
+  .then(data => {
+  
+    L.geoJSON(data, {
+  
+      style: function(feature) {
+  
+        const p = feature.properties || {};
+  
+        const rating =
+          p.outlook_rating ||
+          p.severity ||
+          "";
+  
+        let color = "#ffff00";
+  
+        if (
+          rating.toLowerCase().includes("severe")
+        ) {
+          color = "#ff0000";
+        }
+        else if (
+          rating.toLowerCase().includes("moderate")
+        ) {
+          color = "#ff8800";
+        }
+  
+        return {
+  
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.25,
+          weight: 2
+  
+        };
+  
+      },
+  
+      onEachFeature: function(feature, layer) {
+  
+        const p = feature.properties || {};
+  
+        layer.bindPopup(`
+          <b>Thunderstorm Outlook</b><br>
+          Rating: ${p.outlook_rating || "-"}<br>
+          Issued: ${p.publication_datetime || "-"}<br>
+          Expires: ${p.expiration_datetime || "-"}
+        `);
+  
+      }
+  
+    }).addTo(window.layers.weather_thunderstorm);
+  
+  })
+  
+  .catch(err => {
+  
+    console.error(
+      "Thunderstorm layer failed:",
+      err
+    );
+  
+  });
 
   
   loadFireSmokeLayer(
