@@ -11,8 +11,18 @@ window.renderMap = async function(){
     const color = Number.isFinite(aqhiVal) ? window.getAQHIColor(aqhiVal) : "#888";
     const latest = rows.map(r=>new Date(r.ReadingDate)).filter(d=>!isNaN(d)).sort((a,b)=>b-a)[0];
     const displayTime = latest ? latest.toLocaleString("en-CA", {timeZone: window.APP_CONFIG?.timezone || "America/Regina", hour12:true}) : "";
-    const html = `<strong>${st.stationName}</strong><br><small>${displayTime}</small><br><br>${window.buildStationPopup(rows)}<hr><span style="font-size:11px;">Saskatchewan AQHI station</span>`;
+    const dnaContainerId = "dna-" + String(st.stationName || "").replace(/[^a-zA-Z0-9]/g, "");
+    const html = `<strong>${st.stationName}</strong><br><small>${displayTime}</small><br><br>${window.buildStationPopup(rows)}<div id="${dnaContainerId}"></div><hr><span style="font-size:11px;">Saskatchewan AQHI station</span>`;
     const marker = L.circleMarker([st.lat, st.lon], {radius:18, fillColor:color, color:"#222", weight:2, fillOpacity:0.85}).bindPopup(html);
+    // AQHI "DNA" driver chart - same computeAQHIDrivers/renderDNAChartInto
+    // as the AB LiveMap pages (see WCAS.html) - this repo's rows already
+    // use the identical ParameterName/Value shape, so the chart code is
+    // reused verbatim, just wired to popupopen here instead of render.js's
+    // generic placeholder hook (this repo's render.js predates that
+    // shared-file pattern and builds popups its own way).
+    marker.on("popupopen", function () {
+      if (window.renderDNAChartInto) window.renderDNAChartInto(dnaContainerId, rows, aqhiVal);
+    });
     window.layers.stations.addLayer(marker);
     if(Number.isFinite(aqhiVal)) window.layers.stations.addLayer(L.marker([st.lat, st.lon], {icon:L.divIcon({className:"aqhi-label", html: aqhiVal>10?"10+":Math.round(aqhiVal), iconSize:[30,30], iconAnchor:[15,15]}), interactive:false}));
   });
