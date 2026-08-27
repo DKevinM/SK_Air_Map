@@ -316,18 +316,22 @@ window.initMap = function(){
           const [lon, lat] = feature.geometry.coordinates;
 
           const marker = L.circleMarker([lat, lon], {
-            radius: 7,
-            fillColor: p.network === "SESAA" ? "#c0392b" : "#8e44ad",
-            fillOpacity: 0.85,
+            radius: 8,
+            fillColor: p.aqhi_color || "#999999",
+            fillOpacity: 0.9,
             color: "#fff",
             weight: 1.5
           });
+
+          const aqhiLine = (p.AQHI_calc != null)
+            ? `<b>AQHI: ${Math.round(p.AQHI_calc)}</b> (${p.aqhi_category})<br>`
+            : "";
 
           const rows = [
             ["PM2.5 (µg/m³)", p["PM2.5"]],
             ["O3 (ppb)", p.O3],
             ["NO2 (ppb)", p.NO2],
-            ["AQI", p.AQI],
+            ["Site's own AQI (not AQHI)", p.AQI],
             ["Temp (°C)", p.TEMP],
             ["Wind", (p.WS != null ? p.WS + " m/s @ " + Math.round(p.WD) + "°" : null)]
           ].filter(([, v]) => v !== null && v !== undefined)
@@ -336,6 +340,7 @@ window.initMap = function(){
 
           marker.bindPopup(
             `<b>${p.station_name}</b> (${p.network})<br>` +
+            aqhiLine +
             `${rows}<br>` +
             `<small>${p.reading_date} UTC · raw, unvalidated</small>`
           );
