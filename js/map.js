@@ -19,9 +19,11 @@ window.initMap = function(){
 
     sk_current: L.layerGroup().addTo(map),
     sk_forecast: L.layerGroup(),
-    
+
     regina_current: L.layerGroup(),
     regina_forecast: L.layerGroup(),
+
+    airshed: L.layerGroup(),
   
     weather_radar: L.layerGroup(),
     weather_wind_u: L.layerGroup(),
@@ -216,6 +218,11 @@ window.initMap = function(){
     window.layers.regina_forecast
   );
 
+  loadAirshedStations(
+    "https://raw.githubusercontent.com/DKevinM/SK_datapull/main/data/sk_airshed_current.geojson",
+    window.layers.airshed
+  );
+
 
 
   
@@ -285,7 +292,64 @@ window.initMap = function(){
       .catch(err => {
         console.error("AQHI grid failed:", url, err);
       });
-  
+
+  }
+
+  // =====================================================
+  // AIRSHED ASSOCIATION STATIONS (WYAMZ / SESAA AirPointer units)
+  // raw, unvalidated data - last 24h only, refreshed hourly
+  // =====================================================
+
+  function loadAirshedStations(url, targetLayer){
+
+    fetch(url + "?v=" + Date.now())
+
+      .then(r => r.json())
+
+      .then(data => {
+
+        console.log("Loaded airshed stations:", url);
+
+        (data.features || []).forEach(feature => {
+
+          const p = feature.properties || {};
+          const [lon, lat] = feature.geometry.coordinates;
+
+          const marker = L.circleMarker([lat, lon], {
+            radius: 7,
+            fillColor: p.network === "SESAA" ? "#c0392b" : "#8e44ad",
+            fillOpacity: 0.85,
+            color: "#fff",
+            weight: 1.5
+          });
+
+          const rows = [
+            ["PM2.5 (µg/m³)", p["PM2.5"]],
+            ["O3 (ppb)", p.O3],
+            ["NO2 (ppb)", p.NO2],
+            ["AQI", p.AQI],
+            ["Temp (°C)", p.TEMP],
+            ["Wind", (p.WS != null ? p.WS + " m/s @ " + Math.round(p.WD) + "°" : null)]
+          ].filter(([, v]) => v !== null && v !== undefined)
+           .map(([label, v]) => `${label}: ${v}`)
+           .join("<br>");
+
+          marker.bindPopup(
+            `<b>${p.station_name}</b> (${p.network})<br>` +
+            `${rows}<br>` +
+            `<small>${p.reading_date} UTC · raw, unvalidated</small>`
+          );
+
+          marker.addTo(targetLayer);
+
+        });
+
+      })
+
+      .catch(err => {
+        console.error("Airshed stations failed:", url, err);
+      });
+
   }
 
 
@@ -300,7 +364,9 @@ window.initMap = function(){
     
     regina_current:"Regina AQHI Current",
     regina_forecast:"Regina AQHI 3hr Forecast",
-    
+
+    airshed:"Airshed Stations (WYAMZ/SESAA, raw)",
+
     purpleair:"Sensors (PurpleAir)",
   
     firesmoke_now:"FireSmoke Current",
