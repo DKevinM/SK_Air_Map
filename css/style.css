@@ -364,6 +364,21 @@ html, body {
      0px  0px 2px #fff;
 }
 
+.aqhi-label-sm {
+  color: black;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  line-height: 22px;
+
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff,
+     0px  0px 2px #fff;
+}
+
 .pa-dot {
   filter: drop-shadow(0 0 2px rgba(0,0,0,0.35));
 }

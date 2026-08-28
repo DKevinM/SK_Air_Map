@@ -316,15 +316,15 @@ window.initMap = function(){
           const [lon, lat] = feature.geometry.coordinates;
 
           const marker = L.circleMarker([lat, lon], {
-            radius: 8,
+            radius: 13,
             fillColor: p.aqhi_color || "#999999",
             fillOpacity: 0.9,
             color: "#fff",
             weight: 1.5
           });
 
-          const aqhiLine = (p.AQHI_calc != null)
-            ? `<b>AQHI: ${Math.round(p.AQHI_calc)}</b> (${p.aqhi_category})<br>`
+          const aqhiLine = (p.aqhi_display != null)
+            ? `<b>AQHI: ${p.aqhi_display}</b> (${p.aqhi_category})<br>`
             : "";
 
           const rows = [
@@ -346,6 +346,18 @@ window.initMap = function(){
           );
 
           marker.addTo(targetLayer);
+
+          if (p.aqhi_display != null) {
+            L.marker([lat, lon], {
+              icon: L.divIcon({
+                className: "aqhi-label-sm",
+                html: p.aqhi_display,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+              }),
+              interactive: false
+            }).addTo(targetLayer);
+          }
 
         });
 
