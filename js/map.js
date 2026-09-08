@@ -384,7 +384,7 @@ window.initMap = function(){
 
     airshed:"Airshed Stations (WYAMZ/SESAA, raw)",
 
-    purpleair:"Sensors (PurpleAir)",
+    purpleair:"PM sensors",
   
     firesmoke_now:"FireSmoke Current",
     firesmoke_6h:"FireSmoke +6h",
