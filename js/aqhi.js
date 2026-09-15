@@ -70,7 +70,7 @@ function drawAQHIPanel(){
     <div style="margin-top:10px;"><strong>Last updated:</strong> ${C.current.time ? new Date(C.current.time).toLocaleString("en-CA", {timeZone: window.APP_CONFIG?.timezone || "America/Regina"}) : "Latest available"}</div>
     <div id="panel-weather" style="margin-top:10px;padding-top:8px;border-top:1px solid #ccc;font-size:13px;"><div style="color:#666;font-style:italic;">Click map for current weather</div></div>
     <div style="margin-top:10px;">
-      <div style="font-weight:600;">Environment Canada Weather Alerts</div>
+      <div style="font-weight:600;">ECCC Weather Alerts</div>
     
       <a href="https://weather.gc.ca/?layers=alert&province=SK" target="_blank">
         Weather Alerts
