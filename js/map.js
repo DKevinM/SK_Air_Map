@@ -30,10 +30,7 @@ window.initMap = function(){
     weather_lightning: L.layerGroup(),
     weather_thunderstorm: L.layerGroup(),
   
-    firesmoke_now: L.layerGroup(),
-    firesmoke_6h: L.layerGroup(),
-    firesmoke_12h: L.layerGroup(),
-    firesmoke_24h: L.layerGroup(),
+    firesmoke: L.layerGroup(),
   
   };
   window.layers.weather_radar.addLayer(L.tileLayer.wms("https://geo.weather.gc.ca/geomet/?lang=en", {layers:"RADAR_1KM_RRAI",format:"image/png",transparent:true,opacity:0.85}));
@@ -100,103 +97,45 @@ window.initMap = function(){
     });
 
   
-  loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_now.geojson",
-    window.layers.firesmoke_now
-  );
-  
-  loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_6h.geojson",
-    window.layers.firesmoke_6h
-  );
-  
-  loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_12h.geojson",
-    window.layers.firesmoke_12h
-  );
-  
-  loadFireSmokeLayer(
-    "https://raw.githubusercontent.com/DKevinM/AB_datapull/main/data/output/firesmoke_24h.geojson",
-    window.layers.firesmoke_24h
-  );
+  // FireSmoke: one PNG overlay + click-to-pick-a-time, same as AB LiveMap
+  // (window.loadFireSmokeCombined in render.js). Skipped off-season.
+  if (window.loadFireSmokeCombined) window.loadFireSmokeCombined();
 
-
-
-  function getSmokeColor(pm) {
-  
-    if (pm < 5) return "#009966";
-    if (pm < 10) return "#ffde33";
-    if (pm < 25) return "#ff9933";
-    if (pm < 50) return "#cc0033";
-  
-    return "#660000";
-  
+  // FireSmoke PM2.5 legend - same stops as LiveMap/js/map.js, which match
+  // the colour ramp baked into AB_datapull's firesmoke_*.png. Hidden until
+  // the FireSmoke layer is switched on; not built off-season.
+  const smokeSeason = window.inSmokeSeason?.() !== false;
+  let smokeLegend = null;
+  if (smokeSeason && (cfg.overlays || ["firesmoke"]).some(o => o.startsWith("firesmoke"))) {
+    smokeLegend = L.DomUtil.create("div", "smoke-legend", map.getContainer());
+    smokeLegend.style.display = "none";
+    L.DomEvent.disableClickPropagation(smokeLegend);
+    L.DomEvent.disableScrollPropagation(smokeLegend);
+    const stops = [
+      { value: "≥ 80",  color: "#a00000" },
+      { value: "40",    color: "#e0432a" },
+      { value: "20",    color: "#ff7b3c" },
+      { value: "10",    color: "#ffb84c" },
+      { value: "5",     color: "#ffde60" },
+      { value: "1",     color: "#ddff92" },
+      { value: "≤ 0.1", color: "#d2ffd2" }
+    ];
+    smokeLegend.innerHTML = `
+      <div class="smoke-legend-title">PM2.5 Smoke<br>(&micro;g/m&sup3;)</div>
+      <div class="smoke-legend-hour" id="smoke-legend-hour">Click on map to pick a time</div>
+      ${stops.map(s => `
+        <div class="smoke-legend-row">
+          <span class="smoke-legend-swatch" style="background:${s.color}"></span>
+          <span>${s.value}</span>
+        </div>
+      `).join("")}
+    `;
+    map.on("overlayadd", e => { if (e.name.startsWith("FireSmoke")) smokeLegend.style.display = "block"; });
+    map.on("overlayremove", e => { if (e.name.startsWith("FireSmoke")) smokeLegend.style.display = "none"; });
   }
-  
-  function loadFireSmokeLayer(url, layer){
-  
-    fetch(url + "?v=" + Date.now())
-  
-      .then(r => r.json())
-  
-      .then(geo => {
-  
-        layer.clearLayers();
-  
-        L.geoJSON(geo, {
-  
-          style: f => ({
-  
-            fillColor: getSmokeColor(
-              Number(f.properties?.pm25)
-            ),
-  
-            fillOpacity: 0.4,
-  
-            color: "none",
-  
-            weight: 0
-  
-          }),
-  
-          onEachFeature: function(feature, lyr){
-  
-            const pm = Number(
-              feature.properties?.pm25
-            );
-  
-            lyr.bindTooltip(
-              `PM2.5: ${
-                isFinite(pm)
-                  ? pm.toFixed(1)
-                  : "—"
-              } µg/m³`
-            );
-  
-          }
-  
-        }).addTo(layer);
-  
-        console.log("Loaded FireSmoke:", url);
-  
-      })
-  
-      .catch(err => {
-  
-        console.error(
-          "FireSmoke failed:",
-          url,
-          err
-        );
-  
-      });
-  
-  }  
 
 
 
-
-  
   // =====================================================
   // LOAD AQHI GRID OVERLAYS
   // =====================================================
@@ -386,10 +325,7 @@ window.initMap = function(){
 
     purpleair:"PM sensors",
   
-    firesmoke_now:"FireSmoke Current",
-    firesmoke_6h:"FireSmoke +6h",
-    firesmoke_12h:"FireSmoke +12h",
-    firesmoke_24h:"FireSmoke +24h",
+    firesmoke:"FireSmoke",
   
     weather_radar:"Radar",
     weather_wind_u:"Winds",
@@ -400,7 +336,10 @@ window.initMap = function(){
 
   
   const overlays = {};
-  (cfg.overlays || Object.keys(labels)).forEach(k => { if(window.layers[k]) overlays[labels[k] || k] = window.layers[k]; });
+  (cfg.overlays || Object.keys(labels)).forEach(k => {
+    if (k.startsWith("firesmoke") && !smokeSeason) return;   // off-season: no checkbox
+    if(window.layers[k]) overlays[labels[k] || k] = window.layers[k];
+  });
   window._layerControl = L.control.layers({OpenStreetMap:osm, Satellite:satellite}, overlays, {collapsed:false}).addTo(map);
   map.on("click", async e => { if(window.handleMapClick) await window.handleMapClick(e.latlng.lat, e.latlng.lng, map); });
 };
