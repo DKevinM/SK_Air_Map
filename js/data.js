@@ -171,7 +171,13 @@ async function loadPurpleAir() {
       quality_flag: p.quality_flag,
       use_for_map: p.use_for_map
     };
-  }).filter(s => Number.isFinite(s.lat) && Number.isFinite(s.lon));
+  })
+    // SK_PA_latest.py sets use_for_map=false (and blanks pm25 / pm_corrected_clean)
+    // on readings it rejects, e.g. 196479 at ~3000 ug/m3 (implausible_high_gt1500).
+    // Without this the pm fallback above reached pm_corrected_original and
+    // painted those sensors 10+ on the map (fixed 2026-10-05).
+    .filter(s => s.use_for_map !== false)
+    .filter(s => Number.isFinite(s.lat) && Number.isFinite(s.lon));
 }
 
 window.fetchAllStationData = async function() { await window.dataReady; return window.AppData.stations; };
