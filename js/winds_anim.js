@@ -15,11 +15,23 @@
   const TZ = (window.APP_CONFIG && window.APP_CONFIG.timezone) || "America/Regina";
   const HOUR = 3600e3;
 
-  const SPEED_BINS = [   // m/s upper bound -> colour (dark: must read on OSM land, forest and satellite)
-    [2, "#1e3a8a"], [4, "#2563eb"], [7, "#7c3aed"], [10, "#c026d3"], [14, "#ea580c"], [Infinity, "#dc2626"]
-  ];
-  const PX_PER_MS = 0.45;      // screen pixels per frame per m/s: same look at every zoom
-  const MAX_AGE = 70;          // frames
+  // Drawing style matches the WCAS emergency / Hinton / Howe Sound pages (2026-10-15):
+  // smooth speed shading and per-particle trails redrawn every frame, so trails fade
+  // cleanly instead of the smeared residue the old dim-the-canvas method left.
+  const BINS = [[2, "#1e3a8a"], [4, "#2563eb"], [7, "#7c3aed"], [10, "#c026d3"], [14, "#ea580c"], [Infinity, "#dc2626"]];
+  // the BINS colours become ramp stops (at each bin's lower edge), shaded in between
+  const STOPS = [[0, "#1e3a8a"], ...BINS.slice(0, -1).map(([hi], i) => [hi, BINS[i + 1][1]])]
+    .map(([v, c]) => [v, [1, 3, 5].map(k => parseInt(c.slice(k, k + 2), 16))]);
+  const NCOL = 12, VMAX = 16;   // m/s: shades up to ~58 km/h, top colour beyond
+  const SHADES = Array.from({ length: NCOL }, (_, i) => {
+    const v = i / (NCOL - 1) * VMAX; let k = 0; while (k < STOPS.length - 2 && v > STOPS[k + 1][0]) k++;
+    const [v0, c0] = STOPS[k], [v1, c1] = STOPS[k + 1], f = Math.min(1, Math.max(0, (v - v0) / (v1 - v0)));
+    return `rgb(${c0.map((x, j) => Math.round(x + (c1[j] - x) * f)).join(",")})`;
+  });
+  // lighter version of the same ramp for the satellite base map (dark imagery)
+  const SHADES_SAT = SHADES.map(c => `rgb(${c.slice(4, -1).split(",").map(x => Math.round(+x + (255 - +x) * 0.45)).join(",")})`);
+  const shadeOf = sp => Math.min(NCOL - 1, Math.round(sp / VMAX * (NCOL - 1)));
+  const PX_PER_MS = 0.35, MAX_AGE = 130, TRAIL = 24, STRIDE = 2, NALPHA = 3;   // a trail point every STRIDE frames
 
   const fmtLocal = t => new Date(t).toLocaleString("en-CA", {
     timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
@@ -87,11 +99,8 @@
       <input class="wind-panel-slider" type="range" min="0" max="0" step="1" value="0" disabled
              aria-label="Forecast time" />
       <div class="wind-panel-row"><span class="wind-panel-when"></span><button type="button" disabled>Now</button></div>
-      <div class="wind-panel-legend">${SPEED_BINS.map(([hi, c], i) => {
-        const lo = i ? SPEED_BINS[i - 1][0] : 0;
-        const lbl = hi === Infinity ? `${Math.round(lo * 3.6)}+` : `${Math.round(lo * 3.6)}–${Math.round(hi * 3.6)}`;
-        return `<span><i style="background:${c}"></i>${lbl}</span>`;
-      }).join("")}<span class="wind-panel-unit">km/h</span></div>`;
+      <div class="wind-panel-legend">0 <i style="background:linear-gradient(90deg,${SHADES.join(",")})"></i>
+        ${Math.round(VMAX * 3.6)}+ km/h</div>`;
     return {
       el,
       status: el.querySelector(".wind-panel-status"),
@@ -118,6 +127,9 @@
       m.on("movestart zoomstart", this._pause, this);
       m.on("moveend zoomend resize", this._reset, this);
       if (!this._ui) this._initUI(m);
+      this._onSat = false;
+      m.eachLayer(l => { if (l._url && /World_Imagery/.test(l._url)) this._onSat = true; });
+      m.on("baselayerchange", this._baseChange, this);
       this._ui.el.style.display = "block";
       this._reset();
       this._refresh();
@@ -129,6 +141,7 @@
     onRemove(m) {
       m.off("movestart zoomstart", this._pause, this);
       m.off("moveend zoomend resize", this._reset, this);
+      m.off("baselayerchange", this._baseChange, this);
       cancelAnimationFrame(this._raf); this._raf = null;
       this._timers.forEach(clearInterval);
       this._canvas.remove();
@@ -177,6 +190,8 @@
       ui.when.textContent = this._following ? "Now" : fmtLocal(t);
     },
 
+    _baseChange(e) { this._onSat = /satellite/i.test(e.name); },
+
     _pause() {
       cancelAnimationFrame(this._raf); this._raf = null;
       this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -188,41 +203,56 @@
       this._canvas.style.width = size.x + "px"; this._canvas.style.height = size.y + "px";
       this._ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       this._w = size.x; this._h = size.y;
-      const n = Math.min(4500, Math.round(size.x * size.y / 260));
+      const n = Math.min(2200, Math.round(size.x * size.y / 520));
       this._particles = Array.from({ length: n }, () => this._spawn(true));
       if (!this._raf) this._loop();
     },
     _spawn(randomAge) {
       // uniformly over the VISIBLE map, so zooming in never starves the view
-      const ll = this._map.containerPointToLatLng([Math.random() * this._w, Math.random() * this._h]);
-      return { lat: ll.lat, lng: ll.lng, age: randomAge ? (Math.random() * MAX_AGE) | 0 : 0 };
+      const x = Math.random() * this._w, y = Math.random() * this._h;
+      const ll = this._map.containerPointToLatLng([x, y]);
+      return { lat: ll.lat, lng: ll.lng, age: randomAge ? (Math.random() * MAX_AGE) | 0 : 0, xs: [x], ys: [y], sp: 0 };
     },
     _loop() {
       this._raf = requestAnimationFrame(() => this._loop());
       const field = this._field;
       if (!field) return;
       const ctx = this._ctx, m = this._map;
-      ctx.globalCompositeOperation = "destination-in";     // fade trails
-      ctx.fillStyle = "rgba(0,0,0,0.93)";
-      ctx.fillRect(0, 0, this._w, this._h);
-      ctx.globalCompositeOperation = "source-over";
-      const paths = SPEED_BINS.map(() => new Path2D());
+      const paths = Array.from({ length: NALPHA * NCOL }, () => new Path2D());
       for (const p of this._particles) {
         if (++p.age > MAX_AGE) { Object.assign(p, this._spawn(false)); continue; }
-        const wv = field.sample(p.lat, p.lng);
-        if (!wv) { Object.assign(p, this._spawn(false)); continue; }
-        const a = m.latLngToContainerPoint([p.lat, p.lng]);
-        // earth-relative wind on a conformal (Web Mercator) map: east = +x, north = -y
-        const bx = a.x + wv.u * PX_PER_MS, by = a.y - wv.v * PX_PER_MS;
-        const ll = m.containerPointToLatLng([bx, by]);
-        p.lat = ll.lat; p.lng = ll.lng;
-        if (bx < 0 || by < 0 || bx > this._w || by > this._h) { Object.assign(p, this._spawn(false)); continue; }
-        const s = Math.hypot(wv.u, wv.v);
-        let bin = 0; while (s > SPEED_BINS[bin][0]) bin++;
-        paths[bin].moveTo(a.x, a.y); paths[bin].lineTo(bx, by);
+        const w = field.sample(p.lat, p.lng);
+        if (w) {
+          // earth-relative wind on a conformal (Web Mercator) map: east = +x, north = -y
+          const ax = p.xs[p.xs.length - 1], ay = p.ys[p.ys.length - 1];
+          const bx = ax + w.u * PX_PER_MS, by = ay - w.v * PX_PER_MS;
+          if (bx < 0 || by < 0 || bx > this._w || by > this._h) { Object.assign(p, this._spawn(false)); continue; }
+          const ll = m.containerPointToLatLng([bx, by]); p.lat = ll.lat; p.lng = ll.lng;
+          if (p.age % STRIDE === 0 || p.xs.length < 2) { p.xs.push(bx); p.ys.push(by); }
+          else { p.xs[p.xs.length - 1] = bx; p.ys[p.ys.length - 1] = by; }
+          p.sp = Math.hypot(w.u, w.v);
+          if (p.xs.length > TRAIL) { p.xs.shift(); p.ys.shift(); }
+        } else if (p.xs.length < 2) { Object.assign(p, this._spawn(false)); continue; }
+        else { p.xs.shift(); p.ys.shift(); }          // left the wind area: let the tail run out
+        const n = p.xs.length, ci = shadeOf(p.sp);
+        // trail drawn as NALPHA connected pieces, faint tail to bright head; dimmer at birth and end of life
+        const life = Math.min(1, p.age / 8, (MAX_AGE - p.age) / 12);
+        for (let seg = 0; seg < NALPHA; seg++) {
+          const i0 = Math.floor(seg * (n - 1) / NALPHA), i1 = Math.floor((seg + 1) * (n - 1) / NALPHA);
+          if (i1 <= i0) continue;
+          const a = Math.max(0, Math.min(NALPHA - 1, Math.round(seg * life))), path = paths[a * NCOL + ci];
+          path.moveTo(p.xs[i0], p.ys[i0]);
+          for (let k = i0 + 1; k <= i1; k++) path.lineTo(p.xs[k], p.ys[k]);
+        }
       }
-      ctx.lineWidth = 2; ctx.lineCap = "round";
-      paths.forEach((pth, i) => { ctx.strokeStyle = SPEED_BINS[i][1]; ctx.stroke(pth); });
+      ctx.clearRect(0, 0, this._w, this._h);
+      ctx.lineWidth = 1.5; ctx.lineCap = "butt"; ctx.lineJoin = "miter";
+      const shades = this._onSat ? SHADES_SAT : SHADES;
+      for (let a = 0; a < NALPHA; a++) {
+        ctx.globalAlpha = [0.45, 0.7, 0.95][a];
+        for (let c = 0; c < NCOL; c++) { ctx.strokeStyle = shades[c]; ctx.stroke(paths[a * NCOL + c]); }
+      }
+      ctx.globalAlpha = 1;
     }
   });
 

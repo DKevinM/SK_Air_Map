@@ -558,8 +558,8 @@ html, body {
 .wind-panel-row button { font-size: 11px; padding: 2px 8px; cursor: pointer; }
 .wind-panel-legend { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; color: #333; }
 .wind-panel-legend span { display: inline-flex; align-items: center; gap: 3px; }
-.wind-panel-legend i { width: 14px; height: 3px; display: inline-block; }
-.wind-panel-unit { color: #666; }
+.wind-panel-legend { align-items: center; }
+.wind-panel-legend i { width: 150px; height: 6px; border-radius: 3px; display: inline-block; }
 
 @media (max-width:768px) {
   /* the info sheet is 140px tall and Clear Selection sits at 150px */
