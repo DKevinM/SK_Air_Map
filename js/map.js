@@ -27,6 +27,7 @@ window.initMap = function(){
   
     weather_radar: L.layerGroup(),
     weather_wind_u: L.layerGroup(),
+    wind_anim: window.createWindAnimLayer ? window.createWindAnimLayer() : L.layerGroup(),
     weather_lightning: L.layerGroup(),
     weather_thunderstorm: L.layerGroup(),
   
@@ -328,7 +329,8 @@ window.initMap = function(){
     firesmoke:"FireSmoke",
   
     weather_radar:"Radar",
-    weather_wind_u:"Winds",
+    weather_wind_u:"Wind speed (ECCC)",
+    wind_anim:"Animated winds + forecast",
     weather_lightning:"Lightning",
     weather_thunderstorm:"Thunderstorm Outlook"
   
