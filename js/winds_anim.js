@@ -1,5 +1,10 @@
 // Animated 10 m winds + forecast time slider.
 //
+// Since 2026-10-18 the files are adjusted to ECCC station winds each hour
+// (AB_winds/py/wind_obs_nudge.py, 75 km radius): past/current hours fully,
+// forecast hours with the correction fading over ~6 h. Each index entry's
+// "adjust" says which, and the panel shows it.
+//
 // Particle layer ported from AB_winds/index.html. Data are the small SK files
 // written every HRDPS run by AB_winds/py/sk_wind_slim.py (~40 KB each over the
 // wire, vs ~19 MB for the full AB_winds files): 10 m u/v cropped to SK and
@@ -42,7 +47,8 @@
     const r = await fetch(BASE + "sk_slim/index.json?v=" + Date.now());
     if (!r.ok) throw new Error("wind index " + r.status);
     const idx = await r.json();
-    return (idx.entries || []).map(e => ({ t: Date.parse(e.t), run: Date.parse(e.run), lead: e.lead, path: e.path }))
+    return (idx.entries || []).map(e => ({ t: Date.parse(e.t), run: Date.parse(e.run), lead: e.lead, path: e.path,
+                                           adjust: e.adjust || { kind: "none" } }))
                               .sort((a, b) => a.t - b.t);
   }
 
@@ -186,7 +192,11 @@
       const [sa, sb] = await Promise.all([loadSnapshot(a), loadSnapshot(b)]);
       this._field = makeField(sa, sb, t);
       const src = this._field.w < 0.5 ? sa : sb;
-      ui.status.textContent = `Valid ${fmtLocal(t)} · HRDPS model, issued ${fmtLocal(src.run)}`;
+      const adj = src.adjust || { kind: "none" };
+      const how = adj.kind === "stations" ? `adjusted to ${adj.n} weather stations`
+        : adj.kind === "fading" && adj.weight >= 0.2 ? "forecast, partly adjusted to stations"
+        : "forecast";
+      ui.status.textContent = `Valid ${fmtLocal(t)} · HRDPS model (issued ${fmtLocal(src.run)}), ${how}`;
       ui.when.textContent = this._following ? "Now" : fmtLocal(t);
     },
 
