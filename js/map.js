@@ -271,6 +271,8 @@ window.initMap = function(){
             ["PM2.5 (µg/m³)", p["PM2.5"]],
             ["O3 (ppb)", p.O3],
             ["NO2 (ppb)", p.NO2],
+            ["H2S (ppb)", p.H2S],
+            ["SO2 (ppb)", p.SO2],
             ["Site's own AQI (not AQHI)", p.AQI],
             ["Temp (°C)", p.TEMP],
             ["Wind", (p.WS != null ? p.WS + " m/s @ " + Math.round(p.WD) + "°" : null)]
