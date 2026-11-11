@@ -1,3 +1,12 @@
+// Clickable dots get their own pane. The SK AQHI grid is on by default,
+// covers the province and loads into overlayPane, so dots in that pane sat
+// under it and could not be clicked (2026-11-11). 460/470 = above the
+// smoke and wind panes (450), below the number labels (markerPane 600).
+window.dotPane = function (name, z) {
+  if (!window.map.getPane(name)) window.map.createPane(name).style.zIndex = z;
+  return name;
+};
+
 window.renderMap = async function(){
   if(!window.map) return;
   await window.AppData.ready;
@@ -13,7 +22,7 @@ window.renderMap = async function(){
     const displayTime = latest ? latest.toLocaleString("en-CA", {timeZone: window.APP_CONFIG?.timezone || "America/Regina", hour12:true}) : "";
     const dnaContainerId = "dna-" + String(st.stationName || "").replace(/[^a-zA-Z0-9]/g, "");
     const html = `<strong>${st.stationName}</strong><br><small>${displayTime}</small><br><br>${window.buildStationPopup(rows)}<div id="${dnaContainerId}"></div><hr><span style="font-size:11px;">Saskatchewan AQHI station</span>`;
-    const marker = L.circleMarker([st.lat, st.lon], {radius:18, fillColor:color, color:"#222", weight:2, fillOpacity:0.85}).bindPopup(html);
+    const marker = L.circleMarker([st.lat, st.lon], {radius:18, fillColor:color, color:"#222", weight:2, fillOpacity:0.85, pane: window.dotPane("stationPane", 470)}).bindPopup(html);
     // AQHI "DNA" driver chart - same computeAQHIDrivers/renderDNAChartInto
     // as the AB LiveMap pages (see WCAS.html) - this repo's rows already
     // use the identical ParameterName/Value shape, so the chart code is

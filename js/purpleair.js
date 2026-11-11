@@ -24,7 +24,7 @@ window.renderPurpleAir = async function(){
     if(eAQHI == null) return;
     const color = window.getAQHIColor(eAQHI);
     const popup = `<strong>PurpleAir</strong><br>${rec.name || "Sensor"}<br>${rec.sensor_index ? `Sensor index: ${rec.sensor_index}<br>` : ""}eAQHI: <b>${eAQHI}</b><br>PM₂.₅: ${pm.toFixed(1)} µg/m³<br>${rec.last_seen ? `<small>Last seen: ${rec.last_seen}</small><br>` : ""}${rec.quality_flag ? `<small>Flag: ${rec.quality_flag}</small>` : ""}`;
-    window.layers.purpleair.addLayer(L.circleMarker([lat,lon], {radius:9, fillColor:color, color:"#111", weight:1, fillOpacity:0.88}).bindPopup(popup));
+    window.layers.purpleair.addLayer(L.circleMarker([lat,lon], {radius:9, fillColor:color, color:"#111", weight:1, fillOpacity:0.88, pane: window.dotPane("sensorPane", 460)}).bindPopup(popup));
     window.layers.purpleair.addLayer(L.marker([lat,lon], {icon:L.divIcon({className:"purpleair-label", html:`<div class="pa-inner">${eAQHI}</div>`, iconSize:[18,18], iconAnchor:[9,9]}), interactive:false}));
   });
 };

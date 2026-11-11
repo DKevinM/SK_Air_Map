@@ -260,7 +260,8 @@ window.initMap = function(){
             fillColor: p.aqhi_color || "#999999",
             fillOpacity: 0.9,
             color: "#fff",
-            weight: 1.5
+            weight: 1.5,
+            pane: window.dotPane("stationPane", 470)   // above the AQHI grid (see render.js)
           });
 
           const aqhiLine = (p.aqhi_display != null)
