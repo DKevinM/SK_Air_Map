@@ -255,11 +255,16 @@ window.initMap = function(){
           const p = feature.properties || {};
           const [lon, lat] = feature.geometry.coordinates;
 
+          // held = the station's page was down this hour, so this is its last
+          // reading (kept up to 6 h by sk_airshed_pull.py) - draw it faded.
+          const held = p.held === true;
+
           const marker = L.circleMarker([lat, lon], {
             radius: 13,
             fillColor: p.aqhi_color || "#999999",
-            fillOpacity: 0.9,
-            color: "#fff",
+            fillOpacity: held ? 0.45 : 0.9,
+            color: held ? "#555" : "#fff",
+            dashArray: held ? "3 3" : null,
             weight: 1.5,
             pane: window.dotPane("stationPane", 470)   // above the AQHI grid (see render.js)
           });
@@ -285,6 +290,7 @@ window.initMap = function(){
             `<b>${p.station_name}</b> (${p.network})<br>` +
             aqhiLine +
             `${rows}<br>` +
+            (held ? `<small><i>Last reading - the station's website is not updating right now.</i></small><br>` : "") +
             `<small>${p.reading_date} UTC · raw, unvalidated</small>`
           );
 
